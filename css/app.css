@@ -64,6 +64,7 @@ input:read-only { cursor: default; }
 }
 .sum:not(:last-child)::after { content: "·"; margin-inline: var(--space-xs); color: var(--color-neutral); }
 .sum-lead { font-weight: 800; }
+.sum-alert { color: var(--color-accent-text); font-weight: 800; }
 .sum-lead::before {
   content: ""; display: inline-block; width: 8px; height: 8px; margin-right: var(--space-xs); vertical-align: 1px;
   background: var(--color-accent);
@@ -74,7 +75,9 @@ input:read-only { cursor: default; }
   background: var(--color-ink); color: var(--color-paper);
   font-size: var(--text-label); font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
 }
-.menubar:hover .menubar-action { background: var(--color-accent); color: var(--color-accent-ink); }
+.menubar:not([aria-disabled="true"]):hover .menubar-action { background: var(--color-accent); color: var(--color-accent-ink); }
+.menubar[aria-disabled="true"] { cursor: not-allowed; }
+.menubar[aria-disabled="true"] .menubar-action { opacity: 0.55; }
 .menubar:active .menubar-action { transform: translateY(1px); }
 .menubar-mark {
   width: 9px; height: 9px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
@@ -151,7 +154,7 @@ input:read-only { cursor: default; }
   background: var(--color-ink); color: var(--color-paper);
   font-size: var(--text-label); font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
 }
-.done:hover { background: var(--color-accent); color: var(--color-accent-ink); }
+.done:hover:not(:disabled) { background: var(--color-accent); color: var(--color-accent-ink); }
 .done:active { transform: translateY(1px); }
 
 /* Stage: the verb is the hero */

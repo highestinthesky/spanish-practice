@@ -25,9 +25,9 @@ test('next() returns a prompt with the expected form and the person label', () =
   assert.equal(p.personLabel, ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'][p.person]);
 });
 
-test('next() follows the chips and the vosotros setting', () => {
+test('next() follows the ticked types and the vosotros setting', () => {
   const { session } = setup();
-  session.toggleChip('e→ie');
+  session.toggleType('regular');
   session.setVosotros(false);
   for (let i = 0; i < 100; i += 1) {
     const p = session.next();
@@ -36,18 +36,21 @@ test('next() follows the chips and the vosotros setting', () => {
   }
 });
 
-test('toggleChip toggles and persists in the store', () => {
+test('toggleType unticks and reticks a type and persists in the store', () => {
   const { session, store } = setup();
-  session.toggleChip('o→ue');
-  assert.deepEqual(store.state().settings.chips, ['o→ue']);
-  session.toggleChip('o→ue');
-  assert.deepEqual(store.state().settings.chips, []);
+  assert.equal(session.typeOn('o→ue'), true);
+  session.toggleType('o→ue');
+  assert.deepEqual(store.state().settings.off, ['o→ue']);
+  assert.equal(session.typeOn('o→ue'), false);
+  session.toggleType('o→ue');
+  assert.deepEqual(store.state().settings.off, []);
 });
 
-test('next() with a filter that matches nothing falls back to all verbs', () => {
+test('next() returns null when every verb is unticked, never a verb the menu excludes', () => {
   const { session } = setup();
-  session.toggleChip('-uir');
-  assert.ok(session.next());
+  session.toggleType('regular');
+  session.toggleType('e→ie');
+  assert.equal(session.next(), null);
 });
 
 test('next() returns null when there are no verbs at all', () => {
@@ -118,7 +121,7 @@ test('a throwing storage does not stop a session (Review Focus 3)', () => {
   const { session } = setup({ store });
   const p = session.next();
   assert.doesNotThrow(() => session.answer(p, p.expected));
-  assert.doesNotThrow(() => session.toggleChip('e→ie'));
+  assert.doesNotThrow(() => session.toggleType('e→ie'));
 });
 
 function bigSetup() {
@@ -237,21 +240,91 @@ test('setBook limits the pool to that book; counts follow the book', () => {
   assert.equal(session.settings().book, 'D1');
 });
 
-test('chips AND the book; a combination with no verbs falls back to the whole book', () => {
+test('unticked types AND the book', () => {
   const { session } = bookSetup();
-  session.setBook('D2');
-  session.toggleChip('o→ue');
+  session.setBook('D1');
+  session.toggleType('e→ie');
   assert.equal(session.poolSize(), 1);
-  assert.equal(session.next().verb.inf, 'invertir');
-  session.clearChips();
-  assert.deepEqual(session.settings().chips, []);
+  assert.equal(session.next().verb.inf, 'poder');
 });
 
 test('saved D1/D2 chips from the old rail move into the book setting', () => {
   const { session } = bookSetup({ chips: ['D2', 'e→ie'] });
   assert.equal(session.settings().book, 'D2');
-  assert.deepEqual(session.settings().chips, ['e→ie']);
+  assert.deepEqual(session.settings().chips, []);
+  assert.ok(!session.settings().off.includes('e→ie') && session.settings().off.includes('o→ue'));
   const both = bookSetup({ chips: ['D1', 'D2'] }).session;
   assert.equal(both.settings().book, 'all');
   assert.deepEqual(both.settings().chips, []);
+});
+
+/* Menu semantics: every type starts ticked; unticking a type removes every verb that has it. */
+
+function typesSetup(saved) {
+  const tenses = D.createTenseRegistry();
+  tenses.register({ id: 'present', mark: 'pres', name: 'presente', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
+  const raw = saved ? JSON.stringify({ settings: saved }) : null;
+  const store = D.createStore(() => ({ getItem: () => raw, setItem() {}, removeItem() {} }));
+  let t = 0;
+  const session = D.createSession({ verbs: D.verbs, tenses, store, rng: mulberry32(8), now: () => (t += 1000) });
+  return { session, store };
+}
+
+test('unticking reflexivo removes every reflexive verb, including stem-changing ones', () => {
+  const { session } = typesSetup();
+  session.toggleType('reflexive');
+  assert.deepEqual(session.settings().off, ['reflexive']);
+  for (let i = 0; i < 400; i += 1) {
+    const p = session.next();
+    assert.ok(!p.verb.reflexive, `${p.verb.inf} came up with reflexivo unticked`);
+    session.answer(p, i % 3 ? p.expected : 'zzz');
+  }
+});
+
+test('a verb missed before a type is unticked does not come back as a retry', () => {
+  const { session } = typesSetup();
+  let p = session.next();
+  while (!p.verb.reflexive) p = session.next();
+  session.answer(p, 'zzz');
+  session.toggleType('reflexive');
+  for (let i = 0; i < 20; i += 1) assert.ok(!session.next().verb.reflexive);
+});
+
+test('ticking types back in brings their verbs back; all types ticked means every verb', () => {
+  const { session } = typesSetup();
+  const all = session.poolSize();
+  session.toggleType('reflexive');
+  assert.ok(session.poolSize() < all);
+  session.toggleType('reflexive');
+  assert.equal(session.poolSize(), all);
+  assert.deepEqual(session.settings().off, []);
+});
+
+test('setAllTypes(false) empties the pool and next() returns null instead of ignoring the menu', () => {
+  const { session } = typesSetup();
+  session.setAllTypes(false);
+  assert.deepEqual([...session.settings().off].sort(), [...D.TYPE_TAGS].sort());
+  assert.equal(session.poolSize(), 0);
+  assert.equal(session.next(), null);
+  session.toggleType('regular');
+  assert.ok(session.poolSize() > 0);
+  for (let i = 0; i < 50; i += 1) assert.deepEqual(session.next().verb.tags.filter((t) => D.TYPE_TAGS.includes(t)), ['regular']);
+  session.setAllTypes(true);
+  assert.deepEqual(session.settings().off, []);
+});
+
+test('a type and a book that share no verbs give an empty pool, not a silent fallback', () => {
+  const { session } = typesSetup();
+  session.setBook('D1');
+  session.setAllTypes(false);
+  session.toggleType('-uir');
+  assert.equal(session.countFor('-uir'), 0);
+  assert.equal(session.poolSize(), 0);
+  assert.equal(session.next(), null);
+});
+
+test('chips saved by the old include-list menu become the matching unticked types', () => {
+  const { session } = typesSetup({ chips: ['e→ie', 'o→ue', 'regular'] });
+  assert.deepEqual([...session.settings().off].sort(), D.TYPE_TAGS.filter((t) => !['e→ie', 'o→ue', 'regular'].includes(t)).sort());
+  assert.deepEqual(session.settings().chips, []);
 });

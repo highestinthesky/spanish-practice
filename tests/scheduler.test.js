@@ -184,3 +184,16 @@ test('buildPool: a book keeps only its own verbs and combines with chips by AND'
   assert.deepEqual(infs({ chips: ['e→ie'], book: 'all' }), ['a', 'b']);
   assert.deepEqual(infs({ chips: ['e→ie'] }), ['a', 'b']);
 });
+
+test('buildPool: off drops every verb that has any unticked type', () => {
+  const t = { id: 'present', persons: ['a'] };
+  const vs = [
+    { inf: 'acostarse', tags: ['o→ue', 'reflexive'], forms: { present: ['1'] } },
+    { inf: 'poder', tags: ['o→ue'], forms: { present: ['1'] } },
+    { inf: 'lavarse', tags: ['regular', 'reflexive'], forms: { present: ['1'] } },
+  ];
+  const infs = (off) => S.buildPool({ verbs: vs, tense: t, vosotros: true, off }).map((p) => p.verb.inf);
+  assert.deepEqual(infs(['reflexive']), ['poder']);
+  assert.deepEqual(infs(['o→ue']), ['lavarse']);
+  assert.deepEqual(infs([]), ['acostarse', 'poder', 'lavarse']);
+});

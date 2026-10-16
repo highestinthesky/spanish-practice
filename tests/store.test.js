@@ -15,7 +15,7 @@ function fakeStorage(initial) {
 
 test('fresh store has defaults', () => {
   const s = D.createStore(() => fakeStorage());
-  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all' } });
+  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [] } });
 });
 
 test('the storage key is conjugacion.v1', () => {
@@ -87,7 +87,7 @@ test('sanitize drops bad items and bad settings but keeps good ones', () => {
   });
   const s = D.createStore(() => fakeStorage(raw));
   assert.deepEqual(Object.keys(s.state().items), ['good']);
-  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all' });
+  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [] });
 });
 
 test('clear resets state and removes the stored key', () => {
@@ -103,5 +103,12 @@ test('book setting: D1 and D2 are kept, anything else falls back to all', () => 
   for (const [raw, want] of [['D1', 'D1'], ['D2', 'D2'], ['all', 'all'], ['D3', 'all'], [7, 'all']]) {
     const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { book: raw } })));
     assert.equal(s.state().settings.book, want, String(raw));
+  }
+});
+
+test('off setting: an array of type names, anything else becomes empty', () => {
+  for (const [raw, want] of [[['reflexive'], ['reflexive']], [['x', 7], ['x']], ['reflexive', []], [null, []]]) {
+    const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { off: raw } })));
+    assert.deepEqual(s.state().settings.off, want, JSON.stringify(raw));
   }
 });
