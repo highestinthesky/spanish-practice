@@ -1,5 +1,7 @@
 # Conjugation drill: design
 
+> **Update 2026-10-16 (word-updates).** The verb list now covers the Descubre 1 and 2 lesson vocabulary (about 320 verbs, `D1`/`D2` chips, lesson map in `js/data/descubre.js`). All Descubre 1–2 tenses are drillable (plus a `todo` mix), built at load time by `js/core/conjugate.js`; forms typed by hand are kept and the tests check the conjugator against them and against hand-typed fixtures for every tense. A miss shows the verb's full table under the plate, with irregular forms marked, and the missed form comes back three prompts later flagged `repaso`. A verb answered right rests for a while (2 min to 1 day by box). The "forms are stored explicitly" rule and the gustar-type exclusion below still hold for typed forms; generated forms replace hand-typing for new verbs.
+
 Date: 2026-10-15
 Status: awaiting review
 

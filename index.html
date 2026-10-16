@@ -21,6 +21,7 @@
     </header>
 
     <section class="stage" id="stage" data-mode="asking">
+      <p class="meta"><span class="label tense-name" id="tense"></span><span class="flag" id="flag" hidden></span></p>
       <button class="verb" id="verb" type="button" aria-expanded="false" aria-controls="gloss"></button>
       <p class="label gloss" id="gloss" hidden></p>
       <p class="person" id="person"></p>
@@ -45,6 +46,8 @@
       </button>
     </section>
 
+    <section class="conj" id="conj" hidden></section>
+
     <footer class="meter">
       <div class="bars" id="bars" aria-hidden="true"></div>
       <output class="acc" id="acc" hidden></output>
@@ -58,13 +61,17 @@
   <script src="js/core/scheduler.js"></script>
   <script src="js/core/session.js"></script>
   <script src="js/core/guard.js"></script>
+  <script src="js/core/conjugate.js"></script>
   <script src="js/data/verb.js"></script>
   <script src="js/tenses/present.js"></script>
+  <script src="js/tenses/more.js"></script>
   <script src="js/data/verbs-irregular.js"></script>
   <script src="js/data/verbs-stem.js"></script>
   <script src="js/data/verbs-spelling.js"></script>
   <script src="js/data/verbs-reflexive.js"></script>
   <script src="js/data/verbs-regular.js"></script>
+  <script src="js/data/verbs-descubre.js"></script>
+  <script src="js/data/descubre.js"></script>
   <script src="js/ui/app.js"></script>
 </body>
 </html>

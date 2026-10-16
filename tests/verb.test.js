@@ -33,7 +33,49 @@ test('v() copies its inputs', () => {
 });
 
 test('TAGS lists the chip order', () => {
-  assert.deepEqual(D.TAGS, ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular']);
+  assert.deepEqual(D.TAGS, ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular', 'D1', 'D2']);
+});
+
+test('v() without forms leaves every tense to the conjugator', () => {
+  const verb = D.v('pensar', 'to think', ['e→ie']);
+  assert.deepEqual(verb.forms, {});
+  const { tenses, book } = freshBook();
+  tenses.register({ id: 'preterite', mark: 'pret', persons: SIX });
+  book.addVerbs([verb]);
+  assert.deepEqual(verb.forms.present, ['pienso', 'piensas', 'piensa', 'pensamos', 'pensáis', 'piensan']);
+  assert.deepEqual(verb.forms.preterite, ['pensé', 'pensaste', 'pensó', 'pensamos', 'pensasteis', 'pensaron']);
+});
+
+test('addVerbs keeps forms typed by hand and flags tenses that break the regular pattern', () => {
+  const { tenses, book } = freshBook();
+  tenses.register({ id: 'preterite', mark: 'pret', persons: SIX });
+  tenses.register({ id: 'imperfect', mark: 'imp', persons: SIX });
+  const pensar = D.v('pensar', 'x', ['e→ie'], SIX);
+  const hablar = D.v('hablar', 'x', ['regular']);
+  book.addVerbs([pensar, hablar]);
+  assert.deepEqual(pensar.forms.present, SIX);
+  assert.deepEqual(pensar.tricky, { present: true, preterite: false, imperfect: false });
+  assert.deepEqual(hablar.tricky, { present: false, preterite: false, imperfect: false });
+});
+
+test('addLessons tags verbs with their book and rejects unknown verbs or books', () => {
+  const { book } = freshBook();
+  book.addVerbs([D.v('hablar', 'x', ['regular'])]);
+  book.addLessons({ 'D1.2': ['hablar'] });
+  assert.ok(book.verbs[0].tags.includes('D1'));
+  assert.deepEqual(book.verbs[0].lessons, ['D1.2']);
+  assert.throws(() => book.addLessons({ 'D1.2': ['comer'] }), /unknown verb/);
+  assert.throws(() => book.addLessons({ 'D9.1': ['hablar'] }), /unknown book/);
+});
+
+test('irregularMap marks only the forms that differ from the plain pattern', () => {
+  const verb = D.v('tener', 'x', ['-go', 'e→ie']);
+  const irr = D.irregularMap(verb);
+  assert.deepEqual(irr.present, [true, true, true, false, false, true]);
+  assert.deepEqual(irr.imperfect, [false, false, false, false, false, false]);
+  assert.ok(irr.preterite.every(Boolean));
+  assert.equal(irr.participle, false);
+  assert.deepEqual(irr.imperative.affirmative, [false, true, true, true, false, true]);
 });
 
 test('addVerbs accepts valid verbs and rejects duplicates', () => {
