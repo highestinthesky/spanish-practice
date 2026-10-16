@@ -95,3 +95,31 @@ test('pick: missed items come up far more often than mastered ones', () => {
   assert.ok(missed > mastered * 8, `missed ${missed} vs mastered ${mastered}`);
   assert.ok(unseen > mastered, `unseen ${unseen} vs mastered ${mastered}`);
 });
+
+test('pick: a verb used in the recent window does not come back until the window has moved on', () => {
+  const many = Array.from({ length: 12 }, (_, i) => mk(`v${i}`, ['regular']));
+  const pool = S.buildPool({ verbs: many, tense, chips: [], vosotros: true });
+  const rng = mulberry32(11);
+  let last = null;
+  const recent = [];
+  for (let i = 0; i < 500; i += 1) {
+    const item = S.pick(pool, {}, last, rng, recent);
+    assert.ok(!recent.includes(item.verb.inf), `${item.verb.inf} repeated within ${recent.join(',')}`);
+    last = { key: item.key, inf: item.verb.inf };
+    recent.push(item.verb.inf);
+    if (recent.length > S.RECENT_VERBS) recent.shift();
+  }
+});
+
+test('pick: a pool smaller than the window still avoids the most recent verbs it can', () => {
+  const pool = S.buildPool({ verbs: verbs.slice(0, 3), tense, chips: [], vosotros: true });
+  const rng = mulberry32(5);
+  const recent = [];
+  for (let i = 0; i < 300; i += 1) {
+    const item = S.pick(pool, {}, null, rng, recent);
+    // With three verbs, neither of the last two can come straight back.
+    if (recent.length >= 2) assert.ok(!recent.slice(-2).includes(item.verb.inf));
+    recent.push(item.verb.inf);
+    if (recent.length > S.RECENT_VERBS) recent.shift();
+  }
+});

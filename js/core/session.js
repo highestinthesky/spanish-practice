@@ -4,6 +4,7 @@
 
   function createSession({ verbs, tenses, store, rng = Math.random, now = Date.now }) {
     let last = null;
+    const usedVerbs = [];
     const recent = [];
     let right = 0;
     let total = 0;
@@ -37,9 +38,11 @@
         if (!t) return null;
         let pool = poolFor(settings().chips);
         if (!pool.length) pool = poolFor([]);
-        const item = D.scheduler.pick(pool, store.state().items, last, rng);
+        const item = D.scheduler.pick(pool, store.state().items, last, rng, usedVerbs);
         if (!item) return null;
         last = { key: item.key, inf: item.verb.inf };
+        usedVerbs.push(item.verb.inf);
+        if (usedVerbs.length > D.scheduler.RECENT_VERBS) usedVerbs.shift();
         return {
           key: item.key,
           verb: item.verb,

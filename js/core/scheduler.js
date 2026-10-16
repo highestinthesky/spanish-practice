@@ -28,8 +28,11 @@
     return WEIGHTS[entry.box];
   }
 
-  // Never the same item twice running; prefer a different verb from the last one when the pool allows it.
-  function pick(pool, items, last, rng) {
+  const RECENT_VERBS = 8;
+
+  // Never the same item twice running, and no verb from the recent window (newest last) while the pool has others.
+  // A small pool drops the oldest verbs from the window until something is left.
+  function pick(pool, items, last, rng, recent = []) {
     if (!pool.length) return null;
     let candidates = pool;
     if (last) {
@@ -38,6 +41,14 @@
         candidates = otherKey;
         const otherVerb = otherKey.filter((p) => p.verb.inf !== last.inf);
         if (otherVerb.length) candidates = otherVerb;
+      }
+    }
+    for (let from = 0; from < recent.length; from += 1) {
+      const avoid = new Set(recent.slice(from));
+      const fresh = candidates.filter((p) => !avoid.has(p.verb.inf));
+      if (fresh.length) {
+        candidates = fresh;
+        break;
       }
     }
     const weights = candidates.map((p) => weightOf(items[p.key]));
@@ -49,5 +60,5 @@
     return candidates[candidates.length - 1];
   }
 
-  D.scheduler = { WEIGHTS, UNSEEN, itemKey, buildPool, weightOf, pick };
+  D.scheduler = { WEIGHTS, UNSEEN, RECENT_VERBS, itemKey, buildPool, weightOf, pick };
 })(typeof window !== 'undefined' ? window : globalThis);
