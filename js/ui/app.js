@@ -70,7 +70,7 @@
 
     const all = option({ type: 'checkbox', value: '', label: 'todos los tipos' });
     all.classList.add('opt-all');
-    all.querySelector('input').addEventListener('change', () => changed(() => session.clearChips()));
+    all.querySelector('input').addEventListener('change', (e) => changed(() => session.setAllTypes(e.target.checked)));
     el.types.appendChild(all);
 
     for (const group of D.TYPE_GROUPS) {
@@ -80,7 +80,7 @@
       for (const tag of group.tags) {
         const info = D.TYPE_INFO[tag];
         const row = option({ type: 'checkbox', value: tag, label: info.name, example: info.example });
-        row.querySelector('input').addEventListener('change', () => changed(() => session.toggleChip(tag)));
+        row.querySelector('input').addEventListener('change', () => changed(() => session.toggleType(tag)));
         opts.appendChild(row);
       }
       box.appendChild(opts);
@@ -105,7 +105,6 @@
   // Inputs, counts and the summary always mirror the stored settings.
   function syncMenu() {
     const st = session.settings();
-    const chips = new Set(st.chips);
     for (const input of el.book.querySelectorAll('input')) {
       input.checked = input.value === st.book;
       input.closest('.opt').querySelector('.opt-count').textContent = String(session.bookCount(input.value));
@@ -113,29 +112,47 @@
     for (const input of el.types.querySelectorAll('input')) {
       const row = input.closest('.opt');
       if (!input.value) {
-        input.checked = chips.size === 0;
+        input.checked = st.off.length === 0;
         row.querySelector('.opt-count').textContent = String(session.bookCount(st.book));
         continue;
       }
       const n = session.countFor(input.value);
-      input.checked = chips.has(input.value);
-      input.disabled = n === 0 && !input.checked;
+      input.checked = session.typeOn(input.value);
+      input.disabled = n === 0;
       row.querySelector('.opt-count').textContent = String(n);
     }
     el.vos.checked = st.vosotros;
+    // Nothing to drill: the menu cannot be closed until something is ticked again.
+    const empty = session.poolSize() === 0;
+    el.menuDone.disabled = empty;
+    el.menuToggle.setAttribute('aria-disabled', String(empty && !el.menu.hidden));
     renderSummary();
+  }
+
+  const typeName = (t) => (D.TYPE_INFO[t] ? D.TYPE_INFO[t].name : t);
+
+  // Says what is drilled in as few words as possible: everything, everything but a few, or the few that are left.
+  function typesText(off) {
+    const on = D.TYPE_TAGS.filter((t) => !off.includes(t));
+    if (!off.length) return 'todos los tipos';
+    if (!on.length) return 'ningún tipo';
+    if (off.length <= 2 && off.length <= on.length) return `sin ${off.map(typeName).join(', ')}`;
+    if (on.length <= 3) return on.map(typeName).join(', ');
+    return `${on.length} tipos`;
   }
 
   function renderSummary() {
     const st = session.settings();
     const parts = [session.tense() ? session.tense().name : ''];
-    const names = st.chips.map((t) => (D.TYPE_INFO[t] ? D.TYPE_INFO[t].name : t));
-    parts.push(names.length ? (names.length > 3 ? `${names.slice(0, 2).join(', ')} +${names.length - 2}` : names.join(', ')) : 'todos los tipos');
+    parts.push(typesText(st.off));
     if (st.book !== 'all') parts.push(BOOK_NAMES[st.book]);
     const n = session.poolSize();
-    parts.push(`${n} ${n === 1 ? 'verbo' : 'verbos'}`);
+    const count = `${n} ${n === 1 ? 'verbo' : 'verbos'}`;
+    parts.push(count);
     if (!st.vosotros) parts.push('sin vosotros');
-    el.summary.replaceChildren(...parts.filter(Boolean).map((p, i) => node('span', i === 0 ? 'sum sum-lead' : 'sum', p)));
+    el.summary.replaceChildren(
+      ...parts.filter(Boolean).map((p, i) => node('span', i === 0 ? 'sum sum-lead' : p === count && n === 0 ? 'sum sum-alert' : 'sum', p))
+    );
   }
 
   function openMenu() {
@@ -148,7 +165,7 @@
 
   // A changed setup gets a fresh prompt when the menu closes, not on every tick.
   function closeMenu(focusTo) {
-    if (el.menu.hidden) return;
+    if (el.menu.hidden || session.poolSize() === 0) return;
     el.menu.hidden = true;
     el.menuToggle.setAttribute('aria-expanded', 'false');
     el.menuWord.textContent = 'menú';
@@ -377,6 +394,7 @@
   });
 
   buildMenu();
+  if (session.poolSize() === 0) openMenu();
   buildKeys();
   buildBars();
   renderMeter();

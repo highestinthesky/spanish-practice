@@ -17,39 +17,47 @@
 
     const settings = () => store.state().settings;
 
-    // The old rail stored the books as chips. Move them into the book setting once.
+    // Older menus saved an include-list of chips (books mixed in). Turn it into the book setting and the
+    // list of unticked types once, so the student keeps what they had chosen.
     {
-      const chips = settings().chips;
-      const books = chips.filter((c) => c === 'D1' || c === 'D2');
-      if (books.length) {
-        store.setSetting('chips', chips.filter((c) => !books.includes(c)));
+      const chips = settings().chips || [];
+      if (chips.length) {
+        const books = chips.filter((c) => c === 'D1' || c === 'D2');
+        const types = chips.filter((c) => !books.includes(c));
         if (books.length === 1) store.setSetting('book', books[0]);
+        if (types.length) store.setSetting('off', (D.TYPE_TAGS || []).filter((t) => !types.includes(t)));
+        store.setSetting('chips', []);
       }
     }
+    const off = () => settings().off || [];
 
     const mixed = () => settings().tense === MIX && tenses.all().length > 0;
     const tense = () => tenses.get(settings().tense) || tenses.all()[0] || null;
     const inPlay = () => (mixed() ? tenses.all() : [tense()].filter(Boolean));
 
-    function poolFor(chips, book = settings().book) {
+    function poolFor({ book = settings().book, unticked = off(), chips = [] } = {}) {
       const pool = [];
-      for (const t of inPlay()) pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, vosotros: settings().vosotros }));
+      for (const t of inPlay()) {
+        pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, off: unticked, vosotros: settings().vosotros }));
+      }
       return pool;
     }
 
-    // The pool next() really draws from: chips AND book, else the whole book, else everything.
-    function activePool() {
-      let pool = poolFor(settings().chips);
-      if (!pool.length) pool = poolFor([]);
-      if (!pool.length) pool = poolFor([], 'all');
-      return pool;
-    }
+    // Exactly what the menu says: no fallback. An empty selection gives an empty pool.
+    const activePool = () => poolFor();
+    const allowed = (verb) => {
+      const book = settings().book;
+      if ((book === 'D1' || book === 'D2') && !verb.tags.includes(book)) return false;
+      return !verb.tags.some((t) => off().includes(t));
+    };
 
     const distinctVerbs = (pool) => new Set(pool.map((p) => p.verb.inf)).size;
 
     function dueRetry() {
       const ids = new Set(inPlay().map((t) => t.id));
-      retries = retries.filter((r) => ids.has(r.tense.id) && (settings().vosotros || r.person !== r.tense.vosotrosIndex));
+      retries = retries.filter(
+        (r) => ids.has(r.tense.id) && allowed(r.verb) && (settings().vosotros || r.person !== r.tense.vosotrosIndex)
+      );
       const i = retries.findIndex((r) => r.due <= served && (!last || r.key !== last.key));
       return i < 0 ? null : retries.splice(i, 1)[0];
     }
@@ -58,22 +66,25 @@
       settings,
       tense,
       mixed,
-      toggleChip(tag) {
-        const set = new Set(settings().chips);
+      // Every type starts ticked; off lists the unticked ones.
+      typeOn: (tag) => !off().includes(tag),
+      toggleType(tag) {
+        const set = new Set(off());
         if (set.has(tag)) set.delete(tag);
         else set.add(tag);
-        store.setSetting('chips', Array.from(set));
+        store.setSetting('off', Array.from(set));
       },
-      clearChips() {
-        store.setSetting('chips', []);
+      setAllTypes(on) {
+        store.setSetting('off', on ? [] : (D.TYPE_TAGS || []).slice());
       },
       setBook(book) {
         if ((D.BOOKS || ['all']).includes(book)) store.setSetting('book', book);
       },
       // Distinct verbs in the pool being drilled, and per-option counts for the menu.
       poolSize: () => distinctVerbs(activePool()),
-      countFor: (tag) => distinctVerbs(poolFor([tag])),
-      bookCount: (book) => distinctVerbs(poolFor([], book)),
+      // How many verbs of the chosen book have this type, whatever else is ticked.
+      countFor: (tag) => distinctVerbs(poolFor({ chips: [tag], unticked: [] })),
+      bookCount: (book) => distinctVerbs(poolFor({ book, unticked: [] })),
       setVosotros(on) {
         store.setSetting('vosotros', Boolean(on));
       },

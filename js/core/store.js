@@ -7,7 +7,7 @@
   const BOOKS = ['all', 'D1', 'D2'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all' } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [] } };
   }
 
   function isCount(n) {
@@ -31,6 +31,7 @@
       if (typeof s.vosotros === 'boolean') out.settings.vosotros = s.vosotros;
       if (typeof s.tense === 'string' && s.tense) out.settings.tense = s.tense;
       if (BOOKS.includes(s.book)) out.settings.book = s.book;
+      if (Array.isArray(s.off)) out.settings.off = s.off.filter((c) => typeof c === 'string');
     }
     return out;
   }

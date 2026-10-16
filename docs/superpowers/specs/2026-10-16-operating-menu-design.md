@@ -8,6 +8,17 @@ Status: approved by the student's standing instructions (no questions possible; 
 1. The student wants to drill the present tense only, for now. The other tenses built in `word-updates` must be kept for later, not deleted.
 2. The top rail is a row of identical boxed words (`e→ie`, `-go`, `í/ú`, `D1`, `pres`, `todo`). Selected chips are ink-filled, but nothing says what ink means, what a chip does, or what "nothing selected" means (it means "all verbs"). The student could not tell what was selected. The rail is the drill's **operating menu**: it decides what gets practised. It has to read like a control panel, not a header.
 
+## Revision 2026-10-16b: types are exclusions, not an include-list
+
+The student unticked `reflexivo` and still got reflexive verbs. Cause: types combined by OR, so `acostarse` (o→ue **and** reflexive) came in through `o → ue`; and a missed reflexive verb could come back as a retry after the filter changed. New rules, replacing the type rows in the table below:
+
+- Every type starts **ticked**. Unticking a type removes **every verb that has it**, whatever its other types (`settings.off`).
+- `todos los tipos` ticks or unticks all of them at once.
+- No silent fallback: an empty selection shows `0 verbos` in red, disables `listo`, and the menu cannot close until something is ticked.
+- Retries obey the menu: a missed form whose verb is now filtered out is dropped.
+- Counts next to each type are how many verbs of the chosen book have that type.
+- Include-lists saved by the earlier menu are converted: the types not in the list become unticked.
+
 ## Decisions
 
 | Question | Decision |

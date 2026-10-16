@@ -17,14 +17,17 @@
 
   const infOf = (key) => key.split('|')[1];
 
-  // Book ('D1', 'D2'; anything else means all) AND any of the chips (none means all).
-  function buildPool({ verbs, tense, chips, vosotros, book }) {
+  // Book ('D1', 'D2'; anything else means all) AND any of the chips (none means all) AND none of the
+  // unticked types in off: a verb with any unticked type is left out (acostarse is o→ue and reflexive).
+  function buildPool({ verbs, tense, chips, vosotros, book, off }) {
     const wanted = chips && chips.length ? new Set(chips) : null;
     const inBook = book === 'D1' || book === 'D2' ? book : null;
+    const unticked = off && off.length ? new Set(off) : null;
     const pool = [];
     for (const verb of verbs) {
       if (!verb.forms[tense.id]) continue;
       if (inBook && !verb.tags.includes(inBook)) continue;
+      if (unticked && verb.tags.some((t) => unticked.has(t))) continue;
       if (wanted && !verb.tags.some((t) => wanted.has(t))) continue;
       const tricky = !verb.tricky || verb.tricky[tense.id] !== false;
       for (let person = 0; person < tense.persons.length; person += 1) {
