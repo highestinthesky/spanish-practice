@@ -4,9 +4,10 @@
 
   const KEY = 'conjugacion.v1';
   const NEUTRAL_BOX = 2;
+  const BOOKS = ['all', 'D1', 'D2'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present' } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all' } };
   }
 
   function isCount(n) {
@@ -29,6 +30,7 @@
       if (Array.isArray(s.chips)) out.settings.chips = s.chips.filter((c) => typeof c === 'string');
       if (typeof s.vosotros === 'boolean') out.settings.vosotros = s.vosotros;
       if (typeof s.tense === 'string' && s.tense) out.settings.tense = s.tense;
+      if (BOOKS.includes(s.book)) out.settings.book = s.book;
     }
     return out;
   }
@@ -82,6 +84,7 @@
   }
 
   D.STORE_KEY = KEY;
+  D.BOOKS = BOOKS;
   D.createStore = createStore;
 
   // Created on first use so Node (tests) never touches localStorage.

@@ -12,7 +12,8 @@
     stage: $('stage'), tense: $('tense'), flag: $('flag'), verb: $('verb'), gloss: $('gloss'), person: $('person'),
     form: $('form'), input: $('input'), submit: $('submit'), keys: $('keys'),
     plate: $('plate'), own: $('own'), right: $('right'), conj: $('conj'),
-    chips: $('chips'), vos: $('vos'), tenses: $('tenses'),
+    menuToggle: $('menu-toggle'), menuWord: $('menu-word'), summary: $('summary'), menu: $('menu'),
+    book: $('book'), types: $('types'), vos: $('vos'), menuDone: $('menu-done'),
     bars: $('bars'), acc: $('acc'), live: $('live'),
   };
 
@@ -29,9 +30,6 @@
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
 
-  // After a mouse click on a control, typing should go to the answer. Keyboard and touch users keep their place.
-  const isMouse = (e) => e.pointerType === 'mouse';
-
   function announce(text) {
     el.live.textContent = '';
     el.live.textContent = text;
@@ -42,58 +40,121 @@
     el.stage.dataset.mode = next;
   }
 
-  /* ---------- controls ---------- */
+  /* ---------- operating menu ---------- */
 
-  function buildChips() {
-    const on = new Set(session.settings().chips);
-    for (const tag of D.TAGS) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.textContent = tag;
-      b.setAttribute('aria-pressed', String(on.has(tag)));
-      b.addEventListener('click', (e) => {
-        session.toggleChip(tag);
-        b.setAttribute('aria-pressed', String(session.settings().chips.includes(tag)));
-        nextPrompt(isMouse(e));
-      });
-      el.chips.appendChild(b);
-    }
+  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2' };
+  let menuDirty = false;
+
+  // One row of the menu: a real input, a drawn box, the name, an optional example, and a live count.
+  function option({ type, name, value, label, example }) {
+    const row = node('label', `opt opt-${type}`);
+    const input = node('input', 'opt-input');
+    input.type = type;
+    if (name) input.name = name;
+    input.value = value;
+    row.appendChild(input);
+    row.appendChild(node('span', 'opt-box'));
+    row.lastChild.setAttribute('aria-hidden', 'true');
+    row.appendChild(node('span', 'opt-name', label));
+    if (example) row.appendChild(node('span', 'opt-ex', example));
+    row.appendChild(node('span', 'opt-count'));
+    return row;
   }
 
-  function buildVosotros() {
-    const sync = () => el.vos.setAttribute('aria-pressed', String(session.settings().vosotros));
-    sync();
-    el.vos.addEventListener('click', (e) => {
-      session.setVosotros(!session.settings().vosotros);
-      sync();
-      nextPrompt(isMouse(e));
+  function buildMenu() {
+    for (const book of ['all', 'D1', 'D2']) {
+      const row = option({ type: 'radio', name: 'book', value: book, label: BOOK_NAMES[book] });
+      row.querySelector('input').addEventListener('change', () => changed(() => session.setBook(book)));
+      el.book.appendChild(row);
+    }
+
+    const all = option({ type: 'checkbox', value: '', label: 'todos los tipos' });
+    all.classList.add('opt-all');
+    all.querySelector('input').addEventListener('change', () => changed(() => session.clearChips()));
+    el.types.appendChild(all);
+
+    for (const group of D.TYPE_GROUPS) {
+      const box = node('div', 'type-group');
+      box.appendChild(node('p', 'label type-group-name', group.name));
+      const opts = node('div', 'type-opts');
+      for (const tag of group.tags) {
+        const info = D.TYPE_INFO[tag];
+        const row = option({ type: 'checkbox', value: tag, label: info.name, example: info.example });
+        row.querySelector('input').addEventListener('change', () => changed(() => session.toggleChip(tag)));
+        opts.appendChild(row);
+      }
+      box.appendChild(opts);
+      el.types.appendChild(box);
+    }
+
+    el.vos.addEventListener('change', () => changed(() => session.setVosotros(el.vos.checked)));
+    el.menuToggle.addEventListener('click', () => (el.menu.hidden ? openMenu() : closeMenu(el.menuToggle)));
+    el.menuDone.addEventListener('click', () => closeMenu(el.input));
+    el.menuToggle.parentElement.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeMenu(el.menuToggle);
     });
+    syncMenu();
   }
 
-  function buildTenses() {
-    const all = D.tenses.all();
-    if (all.length < 2) return;
-    el.tenses.hidden = false;
-    const current = () => (session.mixed() ? D.MIX : session.tense().id);
-    const sync = () => {
-      for (const b of el.tenses.children) b.setAttribute('aria-pressed', String(b.dataset.id === current()));
-    };
-    for (const t of [...all, { id: D.MIX, mark: 'todo' }]) {
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'chip';
-      b.dataset.id = t.id;
-      b.textContent = t.mark;
-      if (t.name) b.title = t.name;
-      b.addEventListener('click', (e) => {
-        session.setTense(t.id);
-        sync();
-        nextPrompt(isMouse(e));
-      });
-      el.tenses.appendChild(b);
+  function changed(apply) {
+    apply();
+    menuDirty = true;
+    syncMenu();
+  }
+
+  // Inputs, counts and the summary always mirror the stored settings.
+  function syncMenu() {
+    const st = session.settings();
+    const chips = new Set(st.chips);
+    for (const input of el.book.querySelectorAll('input')) {
+      input.checked = input.value === st.book;
+      input.closest('.opt').querySelector('.opt-count').textContent = String(session.bookCount(input.value));
     }
-    sync();
+    for (const input of el.types.querySelectorAll('input')) {
+      const row = input.closest('.opt');
+      if (!input.value) {
+        input.checked = chips.size === 0;
+        row.querySelector('.opt-count').textContent = String(session.bookCount(st.book));
+        continue;
+      }
+      const n = session.countFor(input.value);
+      input.checked = chips.has(input.value);
+      input.disabled = n === 0 && !input.checked;
+      row.querySelector('.opt-count').textContent = String(n);
+    }
+    el.vos.checked = st.vosotros;
+    renderSummary();
+  }
+
+  function renderSummary() {
+    const st = session.settings();
+    const parts = [session.tense() ? session.tense().name : ''];
+    const names = st.chips.map((t) => (D.TYPE_INFO[t] ? D.TYPE_INFO[t].name : t));
+    parts.push(names.length ? (names.length > 3 ? `${names.slice(0, 2).join(', ')} +${names.length - 2}` : names.join(', ')) : 'todos los tipos');
+    if (st.book !== 'all') parts.push(BOOK_NAMES[st.book]);
+    const n = session.poolSize();
+    parts.push(`${n} ${n === 1 ? 'verbo' : 'verbos'}`);
+    if (!st.vosotros) parts.push('sin vosotros');
+    el.summary.replaceChildren(...parts.filter(Boolean).map((p, i) => node('span', i === 0 ? 'sum sum-lead' : 'sum', p)));
+  }
+
+  function openMenu() {
+    el.menu.hidden = false;
+    el.menuToggle.setAttribute('aria-expanded', 'true');
+    el.menuWord.textContent = 'cerrar';
+    menuDirty = false;
+    syncMenu();
+  }
+
+  // A changed setup gets a fresh prompt when the menu closes, not on every tick.
+  function closeMenu(focusTo) {
+    if (el.menu.hidden) return;
+    el.menu.hidden = true;
+    el.menuToggle.setAttribute('aria-expanded', 'false');
+    el.menuWord.textContent = 'menú';
+    if (menuDirty && mode !== 'correct') nextPrompt(false);
+    menuDirty = false;
+    focusTo.focus({ preventScroll: true });
   }
 
   function insertAtCaret(ch) {
@@ -209,8 +270,8 @@
     head.appendChild(key);
 
     const grid = node('div', 'conj-grid');
-    for (const t of D.tenses.all()) {
-      grid.appendChild(tenseCard(t.name || t.mark, table[t.id], irr[t.id], t.id === p.tenseId ? p.person : -1));
+    for (const t of D.TABLE_TENSES) {
+      grid.appendChild(tenseCard(t.name, table[t.id], irr[t.id], t.id === p.tenseId ? p.person : -1));
     }
     grid.appendChild(commandCard(table, irr));
 
@@ -315,9 +376,7 @@
     if (mode === 'asking') el.input.focus({ preventScroll: true });
   });
 
-  buildVosotros();
-  buildChips();
-  buildTenses();
+  buildMenu();
   buildKeys();
   buildBars();
   renderMeter();

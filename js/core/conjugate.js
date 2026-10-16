@@ -355,6 +355,19 @@
     };
   }
 
+  // Tenses shown in the full table after a miss, in table order. Independent of which tenses the drill asks.
+  D.TABLE_TENSES = [
+    { id: 'present', name: 'presente' },
+    { id: 'preterite', name: 'pretérito' },
+    { id: 'imperfect', name: 'imperfecto' },
+    { id: 'future', name: 'futuro' },
+    { id: 'conditional', name: 'condicional' },
+    { id: 'subjunctive', name: 'subjuntivo presente' },
+    { id: 'pastSubjunctive', name: 'subjuntivo imperfecto' },
+    { id: 'perfect', name: 'pretérito perfecto' },
+    { id: 'pluperfect', name: 'pluscuamperfecto' },
+  ];
+
   D.conjugate = conjugate;
   D.conjugator = { conjugate, attach, nuclei, join: joinSpelled, PRONOUNS };
 })(typeof window !== 'undefined' ? window : globalThis);

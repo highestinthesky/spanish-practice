@@ -108,3 +108,12 @@ test('addForms rejects unknown verbs, unknown tenses, and bad lengths', () => {
   assert.throws(() => book.addForms('imperfect', { hablar: SIX }), /unknown tense/);
   assert.throws(() => book.addForms('preterite', { hablar: ['a'] }), /needs 6/);
 });
+
+test('every verb-type chip has a menu name, a worked example and exactly one group', () => {
+  const grouped = D.TYPE_GROUPS.flatMap((g) => g.tags);
+  assert.deepEqual([...grouped].sort(), [...D.TYPE_TAGS].sort());
+  for (const tag of D.TYPE_TAGS) {
+    const info = D.TYPE_INFO[tag];
+    assert.ok(info && info.name && /→/.test(info.example), tag);
+  }
+});

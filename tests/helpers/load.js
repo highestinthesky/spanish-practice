@@ -15,7 +15,6 @@ const SCRIPT_ORDER = [
   'js/core/conjugate.js',
   'js/data/verb.js',
   'js/tenses/present.js',
-  'js/tenses/more.js',
   'js/data/verbs-irregular.js',
   'js/data/verbs-stem.js',
   'js/data/verbs-spelling.js',

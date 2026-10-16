@@ -66,13 +66,12 @@ test('the regular baseline ignores every irregularity', () => {
   assert.equal(t.future[0], 'teneré');
 });
 
-test('tricky flags: regular verbs are plain in every tense, ser is tricky in every simple tense but the future', () => {
-  const hablar = byInf('hablar');
-  assert.ok(Object.values(hablar.tricky).every((x) => x === false));
-  const ser = byInf('ser');
-  assert.equal(ser.tricky.present, true);
-  assert.equal(ser.tricky.preterite, true);
-  assert.equal(ser.tricky.future, false);
+test('tricky flags: regular verbs are plain, ser is irregular in every simple tense but the future', () => {
+  assert.deepEqual(byInf('hablar').tricky, { present: false });
+  assert.deepEqual(byInf('ser').tricky, { present: true });
+  const irr = D.irregularMap(byInf('ser'));
+  assert.ok(irr.preterite.some(Boolean));
+  assert.ok(!irr.future.some(Boolean));
 });
 
 test('conjugate rejects things that are not infinitives', () => {

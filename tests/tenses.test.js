@@ -34,3 +34,26 @@ test('the shared registry has the present tense with six persons and vosotros at
   assert.equal(t.vosotrosIndex, 4);
   assert.equal(t.persons[4], 'vosotros');
 });
+
+test('the drill registers the present tense only', () => {
+  assert.deepEqual(D.tenses.all().map((t) => t.id), ['present']);
+});
+
+test('the parked tenses still register cleanly, for when they come back', () => {
+  require('../js/tenses/parked.js');
+  const r = D.createTenseRegistry();
+  r.register({ id: 'present', mark: 'pres', persons: PERSONS, vosotrosIndex: 4 });
+  D.registerParkedTenses(r);
+  assert.deepEqual(r.all().map((t) => t.id), ['present', 'preterite', 'imperfect', 'future', 'conditional', 'subjunctive', 'pastSubjunctive', 'perfect', 'pluperfect']);
+  for (const t of r.all()) assert.equal(t.persons.length, 6);
+});
+
+test('the conjugation table lists every tense the conjugator builds, with Spanish names', () => {
+  const ids = D.TABLE_TENSES.map((t) => t.id);
+  assert.deepEqual(ids, ['present', 'preterite', 'imperfect', 'future', 'conditional', 'subjunctive', 'pastSubjunctive', 'perfect', 'pluperfect']);
+  const table = D.conjugate('hablar');
+  for (const t of D.TABLE_TENSES) {
+    assert.ok(t.name, t.id);
+    assert.equal(table[t.id].length, 6, t.id);
+  }
+});

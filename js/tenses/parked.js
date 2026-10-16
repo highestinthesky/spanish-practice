@@ -2,8 +2,11 @@
   'use strict';
   const D = (root.Drill = root.Drill || {});
 
-  // Ids match the keys of the conjugator's output. Order is the order of the chips.
-  [
+  // Drillable tenses parked for later. The drill is present-only for now; this file is NOT loaded by index.html.
+  // To bring them back: load this file after js/tenses/present.js and call D.registerParkedTenses(D.tenses)
+  // before the verb data files, so every verb gets these forms. The menu then needs a tense picker again.
+  // Ids match the keys of the conjugator's output.
+  const PARKED = [
     { id: 'preterite', mark: 'pret', name: 'pretérito' },
     { id: 'imperfect', mark: 'imp', name: 'imperfecto' },
     { id: 'future', mark: 'fut', name: 'futuro' },
@@ -12,5 +15,9 @@
     { id: 'pastSubjunctive', mark: 'subj imp', name: 'subjuntivo imperfecto' },
     { id: 'perfect', mark: 'perf', name: 'pretérito perfecto' },
     { id: 'pluperfect', mark: 'plusc', name: 'pluscuamperfecto' },
-  ].forEach((t) => D.tenses.register({ ...t, persons: D.PERSONS, vosotrosIndex: 4 }));
+  ];
+
+  D.registerParkedTenses = (registry) => {
+    for (const t of PARKED) registry.register({ ...t, persons: D.PERSONS, vosotrosIndex: 4 });
+  };
 })(typeof window !== 'undefined' ? window : globalThis);

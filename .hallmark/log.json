@@ -5,5 +5,12 @@
     "theme": "Grid",
     "enrichment": "none",
     "brief": "Single-screen present-tense Spanish conjugation drill, no visible prose"
+  },
+  {
+    "date": "2026-10-16",
+    "macrostructure": "Marquee Hero",
+    "theme": "Grid",
+    "enrichment": "none",
+    "brief": "Operating menu for the present-tense drill: summary bar that states the setup, labelled panel with book radios, grouped verb-type checkboxes with examples and counts, vosotros switch"
   }
 ]

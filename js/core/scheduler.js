@@ -17,11 +17,14 @@
 
   const infOf = (key) => key.split('|')[1];
 
-  function buildPool({ verbs, tense, chips, vosotros }) {
+  // Book ('D1', 'D2'; anything else means all) AND any of the chips (none means all).
+  function buildPool({ verbs, tense, chips, vosotros, book }) {
     const wanted = chips && chips.length ? new Set(chips) : null;
+    const inBook = book === 'D1' || book === 'D2' ? book : null;
     const pool = [];
     for (const verb of verbs) {
       if (!verb.forms[tense.id]) continue;
+      if (inBook && !verb.tags.includes(inBook)) continue;
       if (wanted && !verb.tags.some((t) => wanted.has(t))) continue;
       const tricky = !verb.tricky || verb.tricky[tense.id] !== false;
       for (let person = 0; person < tense.persons.length; person += 1) {
