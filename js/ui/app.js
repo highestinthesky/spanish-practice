@@ -4,7 +4,7 @@
   const $ = (id) => document.getElementById(id);
 
   const ACCENT_KEYS = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ'];
-  const CORRECT_DELAY_MS = 600;
+  const CORRECT_DELAY_MS = 320;
 
   const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store: D.store });
 
