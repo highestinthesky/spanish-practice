@@ -1,0 +1,63 @@
+/* Hallmark · Grid theme tokens. Every colour, font, space, ease and duration used by app.css lives here. */
+:root {
+  /* paper band: light · display: grotesk-heavy · accent hue: signal red (warm) */
+  --color-paper: oklch(99% 0.003 255);
+  --color-paper-2: oklch(97.2% 0.003 255);
+  --color-paper-3: oklch(94.5% 0.004 255);
+  --color-rule: oklch(88% 0.006 255);
+  --color-neutral: oklch(60% 0.010 255);
+  --color-muted: oklch(42% 0.012 255);
+  --color-ink: oklch(16% 0.010 255);
+  --color-accent: oklch(55% 0.21 28);
+  --color-accent-ink: oklch(99% 0.003 255);
+  --color-focus: var(--color-accent);
+  --color-on-accent-rule: color-mix(in oklab, var(--color-accent-ink) 16%, transparent);
+
+  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-body: var(--font-display);
+  --display-weight: 800;
+  --tracking-display: -0.045em;
+
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 72px;
+
+  --text-label: 12px;
+  --text-body: 16px;
+  --text-input: 28px;
+  --text-person: clamp(20px, 3.2vw, 32px);
+  --text-display: clamp(52px, 18vw, 136px);
+
+  --radius-card: 0;
+  --rule-hair: 1px;
+  --rule-ink: 2px;
+
+  --shell-max: 1280px;
+  --gutter: 16px;
+  --grid-cols: 12;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 240ms;
+}
+
+@media (max-width: 700px) {
+  :root {
+    --grid-cols: 6;
+  }
+}
+
+/* Short viewports (landscape phones): size the display by height so the whole drill stays on one screen. */
+@media (max-height: 560px) {
+  :root {
+    --text-display: clamp(36px, 18vh, 136px);
+  }
+}

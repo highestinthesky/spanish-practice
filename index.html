@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <title>conjugar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="rails" aria-hidden="true"></div>
+  <main class="shell">
+    <header class="top">
+      <button class="chip chip-vos" id="vos" type="button" aria-pressed="true">vosotros</button>
+      <div class="chips" id="chips" role="group" aria-label="filtros"></div>
+      <div class="chips" id="tenses" role="group" aria-label="tiempo" hidden></div>
+    </header>
+
+    <section class="stage" id="stage" data-mode="asking">
+      <button class="verb" id="verb" type="button" aria-expanded="false" aria-controls="gloss"></button>
+      <p class="label gloss" id="gloss" hidden></p>
+      <p class="person" id="person"></p>
+
+      <form class="answer" id="form" autocomplete="off" novalidate>
+        <div class="answer-row">
+          <input class="answer-input" id="input" type="text" inputmode="text" enterkeyhint="go"
+                 autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"
+                 lang="es" aria-label="forma conjugada">
+          <button class="submit" id="submit" type="submit" aria-label="comprobar" data-mark="arrow"></button>
+        </div>
+      </form>
+
+      <div class="keys" id="keys"></div>
+
+      <button class="plate" id="plate" type="button" aria-label="siguiente" tabindex="-1">
+        <span class="plate-inner">
+          <span class="label own" id="own"></span>
+          <span class="right" id="right"></span>
+          <span class="plate-go" aria-hidden="true"></span>
+        </span>
+      </button>
+    </section>
+
+    <footer class="meter">
+      <div class="bars" id="bars" aria-hidden="true"></div>
+      <output class="acc" id="acc" hidden></output>
+    </footer>
+  </main>
+  <p class="sr" id="live" role="status" aria-live="polite"></p>
+
+  <script src="js/core/normalize.js"></script>
+  <script src="js/core/tenses.js"></script>
+  <script src="js/core/store.js"></script>
+  <script src="js/core/scheduler.js"></script>
+  <script src="js/core/session.js"></script>
+  <script src="js/core/guard.js"></script>
+  <script src="js/data/verb.js"></script>
+  <script src="js/tenses/present.js"></script>
+  <script src="js/data/verbs-irregular.js"></script>
+  <script src="js/data/verbs-stem.js"></script>
+  <script src="js/data/verbs-spelling.js"></script>
+  <script src="js/data/verbs-reflexive.js"></script>
+  <script src="js/data/verbs-regular.js"></script>
+  <script src="js/ui/app.js"></script>
+</body>
+</html>
