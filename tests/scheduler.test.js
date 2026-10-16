@@ -170,3 +170,17 @@ test('pick: resting verbs stay out while others are awake, and come back when no
   const onlyPensar = pool.filter((p) => p.verb.inf === 'pensar');
   assert.equal(S.pick(onlyPensar, items, null, rng, [], 2000).verb.inf, 'pensar');
 });
+
+test('buildPool: a book keeps only its own verbs and combines with chips by AND', () => {
+  const t = { id: 'present', persons: ['a'] };
+  const vs = [
+    { inf: 'a', tags: ['e→ie', 'D1'], forms: { present: ['1'] } },
+    { inf: 'b', tags: ['e→ie', 'D2'], forms: { present: ['1'] } },
+    { inf: 'c', tags: ['regular', 'D1'], forms: { present: ['1'] } },
+  ];
+  const infs = (o) => S.buildPool({ verbs: vs, tense: t, vosotros: true, ...o }).map((p) => p.verb.inf);
+  assert.deepEqual(infs({ chips: [], book: 'D1' }), ['a', 'c']);
+  assert.deepEqual(infs({ chips: ['e→ie'], book: 'D1' }), ['a']);
+  assert.deepEqual(infs({ chips: ['e→ie'], book: 'all' }), ['a', 'b']);
+  assert.deepEqual(infs({ chips: ['e→ie'] }), ['a', 'b']);
+});

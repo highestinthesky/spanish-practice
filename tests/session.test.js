@@ -125,7 +125,8 @@ function bigSetup() {
   const tenses = D.createTenseRegistry();
   tenses.register({ id: 'present', mark: 'pres', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
   tenses.register({ id: 'preterite', mark: 'pret', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
-  const verbs = D.verbs.slice(0, 40);
+  // The drill registers the present only; give these copies a preterite so mixing has two tenses to draw from.
+  const verbs = D.verbs.slice(0, 40).map((v) => ({ ...v, forms: { ...v.forms, preterite: D.tableOf(v).preterite } }));
   const store = D.createStore(() => ({ getItem: () => null, setItem() {}, removeItem() {} }));
   let t = 0;
   const session = D.createSession({ verbs, tenses, store, rng: mulberry32(4), now: () => (t += 1000) });
@@ -200,4 +201,57 @@ test('mix draws from every registered tense', () => {
     assert.equal(p.expected, p.verb.forms[p.tenseId][p.person]);
   }
   assert.deepEqual([...seen].sort(), ['present', 'preterite']);
+});
+
+function bookSetup(saved) {
+  const tenses = D.createTenseRegistry();
+  tenses.register({ id: 'present', mark: 'pres', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
+  const verbs = [
+    { inf: 'pensar', tags: ['e→ie', 'D1'], forms: { present: ['1', '2', '3', '4', '5', '6'] } },
+    { inf: 'poder', tags: ['o→ue', 'D1'], forms: { present: ['1', '2', '3', '4', '5', '6'] } },
+    { inf: 'invertir', tags: ['e→ie', 'D2'], forms: { present: ['1', '2', '3', '4', '5', '6'] } },
+    { inf: 'valer', tags: ['-go'], forms: { present: ['1', '2', '3', '4', '5', '6'] } },
+  ];
+  const raw = saved ? JSON.stringify({ settings: saved }) : null;
+  const store = D.createStore(() => ({ getItem: () => raw, setItem() {}, removeItem() {} }));
+  return { session: D.createSession({ verbs, tenses, store, rng: mulberry32(2) }), store };
+}
+
+test('TYPE_TAGS are the chip tags without the books', () => {
+  assert.deepEqual(D.TYPE_TAGS, D.TAGS.filter((t) => t !== 'D1' && t !== 'D2'));
+});
+
+test('setBook limits the pool to that book; counts follow the book', () => {
+  const { session } = bookSetup();
+  assert.equal(session.poolSize(), 4);
+  assert.equal(session.countFor('e→ie'), 2);
+  assert.equal(session.bookCount('D1'), 2);
+  assert.equal(session.bookCount('all'), 4);
+  session.setBook('D1');
+  assert.equal(session.settings().book, 'D1');
+  assert.equal(session.poolSize(), 2);
+  assert.equal(session.countFor('e→ie'), 1);
+  assert.equal(session.countFor('-go'), 0);
+  for (let i = 0; i < 50; i += 1) assert.ok(['pensar', 'poder'].includes(session.next().verb.inf));
+  session.setBook('nonsense');
+  assert.equal(session.settings().book, 'D1');
+});
+
+test('chips AND the book; a combination with no verbs falls back to the whole book', () => {
+  const { session } = bookSetup();
+  session.setBook('D2');
+  session.toggleChip('o→ue');
+  assert.equal(session.poolSize(), 1);
+  assert.equal(session.next().verb.inf, 'invertir');
+  session.clearChips();
+  assert.deepEqual(session.settings().chips, []);
+});
+
+test('saved D1/D2 chips from the old rail move into the book setting', () => {
+  const { session } = bookSetup({ chips: ['D2', 'e→ie'] });
+  assert.equal(session.settings().book, 'D2');
+  assert.deepEqual(session.settings().chips, ['e→ie']);
+  const both = bookSetup({ chips: ['D1', 'D2'] }).session;
+  assert.equal(both.settings().book, 'all');
+  assert.deepEqual(both.settings().chips, []);
 });

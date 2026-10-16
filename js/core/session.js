@@ -16,15 +16,36 @@
     let total = 0;
 
     const settings = () => store.state().settings;
+
+    // The old rail stored the books as chips. Move them into the book setting once.
+    {
+      const chips = settings().chips;
+      const books = chips.filter((c) => c === 'D1' || c === 'D2');
+      if (books.length) {
+        store.setSetting('chips', chips.filter((c) => !books.includes(c)));
+        if (books.length === 1) store.setSetting('book', books[0]);
+      }
+    }
+
     const mixed = () => settings().tense === MIX && tenses.all().length > 0;
     const tense = () => tenses.get(settings().tense) || tenses.all()[0] || null;
     const inPlay = () => (mixed() ? tenses.all() : [tense()].filter(Boolean));
 
-    function poolFor(chips) {
+    function poolFor(chips, book = settings().book) {
       const pool = [];
-      for (const t of inPlay()) pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, vosotros: settings().vosotros }));
+      for (const t of inPlay()) pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, vosotros: settings().vosotros }));
       return pool;
     }
+
+    // The pool next() really draws from: chips AND book, else the whole book, else everything.
+    function activePool() {
+      let pool = poolFor(settings().chips);
+      if (!pool.length) pool = poolFor([]);
+      if (!pool.length) pool = poolFor([], 'all');
+      return pool;
+    }
+
+    const distinctVerbs = (pool) => new Set(pool.map((p) => p.verb.inf)).size;
 
     function dueRetry() {
       const ids = new Set(inPlay().map((t) => t.id));
@@ -43,6 +64,16 @@
         else set.add(tag);
         store.setSetting('chips', Array.from(set));
       },
+      clearChips() {
+        store.setSetting('chips', []);
+      },
+      setBook(book) {
+        if ((D.BOOKS || ['all']).includes(book)) store.setSetting('book', book);
+      },
+      // Distinct verbs in the pool being drilled, and per-option counts for the menu.
+      poolSize: () => distinctVerbs(activePool()),
+      countFor: (tag) => distinctVerbs(poolFor([tag])),
+      bookCount: (book) => distinctVerbs(poolFor([], book)),
       setVosotros(on) {
         store.setSetting('vosotros', Boolean(on));
       },
@@ -53,11 +84,7 @@
         if (!inPlay().length) return null;
         let item = dueRetry();
         const retry = Boolean(item);
-        if (!item) {
-          let pool = poolFor(settings().chips);
-          if (!pool.length) pool = poolFor([]);
-          item = D.scheduler.pick(pool, store.state().items, last, rng, usedVerbs, now());
-        }
+        if (!item) item = D.scheduler.pick(activePool(), store.state().items, last, rng, usedVerbs, now());
         if (!item) return null;
         served += 1;
         last = { key: item.key, inf: item.verb.inf };

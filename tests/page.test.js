@@ -27,15 +27,22 @@ test('no ES modules (they fail on file://)', () => {
 });
 
 test('all ids the UI needs exist in the page', () => {
-  for (const id of ['chips', 'vos', 'tenses', 'stage', 'tense', 'flag', 'verb', 'gloss', 'person', 'form', 'input', 'submit', 'keys', 'plate', 'own', 'right', 'conj', 'bars', 'acc', 'live']) {
+  for (const id of ['menu-toggle', 'summary', 'menu-word', 'menu', 'book', 'types', 'vos', 'menu-done', 'stage', 'tense', 'flag', 'verb', 'gloss', 'person', 'form', 'input', 'submit', 'keys', 'plate', 'own', 'right', 'conj', 'bars', 'acc', 'live']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
 });
 
-test('the page has no visible prose: only the vosotros chip text is hard-coded', () => {
+test('the page has no prose: the only hard-coded words are the menu labels', () => {
   const body = html.slice(html.indexOf('<body>'), html.indexOf('<script'));
   const text = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  assert.equal(text, 'vosotros');
+  assert.equal(text, 'menú libro tipo de verbo personas vosotros sí no listo');
+});
+
+test('the menu uses real form controls: a labelled toggle button, fieldsets, a vosotros switch', () => {
+  assert.match(html, /id="menu-toggle"[^>]*aria-expanded="false"[^>]*aria-controls="menu"/);
+  assert.match(html, /<fieldset class="group" id="book">/);
+  assert.match(html, /<fieldset class="group" id="types">/);
+  assert.match(html, /<input[^>]*id="vos"[^>]*type="checkbox"[^>]*role="switch"/);
 });
 
 test('app.css uses no raw colours and no italics', () => {

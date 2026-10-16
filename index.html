@@ -15,9 +15,29 @@
   <div class="rails" aria-hidden="true"></div>
   <main class="shell">
     <header class="top">
-      <button class="chip chip-vos" id="vos" type="button" aria-pressed="true">vosotros</button>
-      <div class="chips" id="chips" role="group" aria-label="filtros"></div>
-      <div class="chips" id="tenses" role="group" aria-label="tiempo" hidden></div>
+      <button class="menubar" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
+        <span class="menubar-summary" id="summary"></span>
+        <span class="menubar-action"><span id="menu-word">menú</span><span class="menubar-mark" aria-hidden="true"></span></span>
+      </button>
+      <div class="menu" id="menu" hidden>
+        <fieldset class="group" id="book">
+          <legend class="label group-title">libro</legend>
+        </fieldset>
+        <fieldset class="group" id="types">
+          <legend class="label group-title">tipo de verbo</legend>
+        </fieldset>
+        <fieldset class="group group-vos">
+          <legend class="label group-title">personas</legend>
+          <label class="opt opt-switch">
+            <input class="opt-input" id="vos" type="checkbox" role="switch">
+            <span class="opt-name">vosotros</span>
+            <span class="switch" aria-hidden="true"><span class="switch-on">sí</span><span class="switch-off">no</span></span>
+          </label>
+        </fieldset>
+        <div class="menu-foot">
+          <button class="done" id="menu-done" type="button">listo</button>
+        </div>
+      </div>
     </header>
 
     <section class="stage" id="stage" data-mode="asking">
@@ -64,7 +84,6 @@
   <script src="js/core/conjugate.js"></script>
   <script src="js/data/verb.js"></script>
   <script src="js/tenses/present.js"></script>
-  <script src="js/tenses/more.js"></script>
   <script src="js/data/verbs-irregular.js"></script>
   <script src="js/data/verbs-stem.js"></script>
   <script src="js/data/verbs-spelling.js"></script>
