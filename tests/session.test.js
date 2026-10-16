@@ -120,3 +120,84 @@ test('a throwing storage does not stop a session (Review Focus 3)', () => {
   assert.doesNotThrow(() => session.answer(p, p.expected));
   assert.doesNotThrow(() => session.toggleChip('e→ie'));
 });
+
+function bigSetup() {
+  const tenses = D.createTenseRegistry();
+  tenses.register({ id: 'present', mark: 'pres', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
+  tenses.register({ id: 'preterite', mark: 'pret', persons: ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'], vosotrosIndex: 4 });
+  const verbs = D.verbs.slice(0, 40);
+  const store = D.createStore(() => ({ getItem: () => null, setItem() {}, removeItem() {} }));
+  let t = 0;
+  const session = D.createSession({ verbs, tenses, store, rng: mulberry32(4), now: () => (t += 1000) });
+  return { session, store };
+}
+
+test('a missed form comes back after a few other prompts, marked as a retry', () => {
+  const { session } = bigSetup();
+  const missed = session.next();
+  session.answer(missed, 'zzz');
+  const between = [];
+  let back = null;
+  for (let i = 0; i < 10 && !back; i += 1) {
+    const p = session.next();
+    if (p.key === missed.key) back = p;
+    else {
+      between.push(p);
+      session.answer(p, p.expected);
+    }
+  }
+  assert.ok(back, 'never came back');
+  assert.equal(between.length, D.RETRY_AFTER);
+  assert.equal(back.retry, true);
+  assert.equal(back.missed, 1);
+  assert.ok(between.every((p) => p.retry === false && p.missed === 0));
+});
+
+test('answering the retry right clears it; missing it again queues it again', () => {
+  const { session } = bigSetup();
+  const p = session.next();
+  session.answer(p, 'zzz');
+  assert.equal(session.pendingRetries(), 1);
+  session.answer(p, 'zzz');
+  assert.equal(session.pendingRetries(), 1);
+  session.answer(p, p.expected);
+  assert.equal(session.pendingRetries(), 0);
+});
+
+test('a verb answered right does not come back while it rests', () => {
+  const { session } = bigSetup();
+  const first = session.next();
+  session.answer(first, first.expected);
+  // 40 verbs: every other verb gets a turn before the pool runs out of awake ones.
+  for (let i = 0; i < 38; i += 1) {
+    const p = session.next();
+    assert.notEqual(p.verb.inf, first.verb.inf);
+    session.answer(p, p.expected);
+  }
+});
+
+test('missed is set for a form whose last answer was wrong in an earlier session', () => {
+  const { session, store } = setup();
+  const keys = ['pensar', 'hablar'].flatMap((inf) => [0, 1, 2, 3, 4, 5].map((n) => `present|${inf}|${n}`));
+  for (const k of keys) {
+    store.record(k, false, 1);
+    store.record(k, false, 2);
+  }
+  const p = session.next();
+  assert.equal(p.missed, 2);
+  assert.equal(p.retry, false);
+});
+
+test('mix draws from every registered tense', () => {
+  const { session, store } = bigSetup();
+  session.setTense('mix');
+  assert.equal(store.state().settings.tense, 'mix');
+  assert.equal(session.mixed(), true);
+  const seen = new Set();
+  for (let i = 0; i < 80; i += 1) {
+    const p = session.next();
+    seen.add(p.tenseId);
+    assert.equal(p.expected, p.verb.forms[p.tenseId][p.person]);
+  }
+  assert.deepEqual([...seen].sort(), ['present', 'preterite']);
+});

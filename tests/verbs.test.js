@@ -8,7 +8,7 @@ const FIXTURES = require('./fixtures/forms');
 const RULE_TAGS = ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling'];
 const PRONOUNS = ['me', 'te', 'se', 'nos', 'os', 'se'];
 // Verbs the rule engine does not cover; they are checked against hand-typed fixtures only.
-const FIXTURE_ONLY = ['ser', 'estar', 'ir', 'dar', 'ver', 'saber', 'oír', 'jugar', 'oler', 'reír', 'sonreír', 'reunirse', 'irse'];
+const FIXTURE_ONLY = ['ser', 'estar', 'ir', 'dar', 'ver', 'saber', 'oír', 'jugar', 'oler', 'reír', 'sonreír', 'reírse', 'reunirse', 'irse', 'prohibir'];
 
 const byInf = (inf) => D.verbs.find((v) => v.inf === inf);
 
@@ -70,10 +70,22 @@ test('regular verbs carry no rule tags', () => {
   }
 });
 
-test('coverage: at least 140 verbs, at least 70% tricky, every chip has at least 5 verbs', () => {
-  assert.ok(D.verbs.length >= 140, `only ${D.verbs.length} verbs`);
+test('the conjugator gives the same present as every verb typed by hand', () => {
+  for (const verb of D.verbs) assert.deepEqual(D.conjugate(verb.inf, verb.tags).present, verb.forms.present, verb.inf);
+});
+
+test('every registered tense is filled for every verb', () => {
+  for (const verb of D.verbs) {
+    for (const t of D.tenses.all()) assert.equal(verb.forms[t.id].length, 6, `${verb.inf} ${t.id}`);
+  }
+});
+
+test('coverage: at least 300 verbs, most of Descubre 1 and 2, every chip has at least 5 verbs', () => {
+  assert.ok(D.verbs.length >= 300, `only ${D.verbs.length} verbs`);
+  assert.ok(D.verbs.filter((v) => v.tags.includes('D1')).length >= 140);
+  assert.ok(D.verbs.filter((v) => v.tags.includes('D2')).length >= 120);
   const tricky = D.verbs.filter((v) => !v.tags.includes('regular')).length;
-  assert.ok(tricky / D.verbs.length >= 0.7, `tricky share ${tricky}/${D.verbs.length}`);
+  assert.ok(tricky >= 120, `only ${tricky} verbs irregular in the present`);
   for (const tag of D.TAGS) {
     const n = D.verbs.filter((v) => v.tags.includes(tag)).length;
     assert.ok(n >= 5, `${tag} has only ${n} verbs`);

@@ -38,3 +38,4 @@ test('muted label text on paper is at least 4.5:1', () => assert.ok(ratio('color
 test('text on the accent plate is at least 4.5:1', () => assert.ok(ratio('color-accent-ink', 'color-accent') >= 4.5));
 test('accent against paper is at least 3:1 for UI boundaries', () => assert.ok(ratio('color-accent', 'color-paper') >= 3));
 test('paper text on ink (correct state) is at least 7:1', () => assert.ok(ratio('color-paper', 'color-ink') >= 7));
+test('irregular forms in the table (accent text on paper) are at least 4.5:1', () => assert.ok(ratio('color-accent-text', 'color-paper') >= 4.5));

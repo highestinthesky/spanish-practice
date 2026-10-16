@@ -27,7 +27,7 @@ test('no ES modules (they fail on file://)', () => {
 });
 
 test('all ids the UI needs exist in the page', () => {
-  for (const id of ['chips', 'vos', 'tenses', 'stage', 'verb', 'gloss', 'person', 'form', 'input', 'submit', 'keys', 'plate', 'own', 'right', 'bars', 'acc', 'live']) {
+  for (const id of ['chips', 'vos', 'tenses', 'stage', 'tense', 'flag', 'verb', 'gloss', 'person', 'form', 'input', 'submit', 'keys', 'plate', 'own', 'right', 'conj', 'bars', 'acc', 'live']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
 });

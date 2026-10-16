@@ -9,9 +9,9 @@
   const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store: D.store });
 
   const el = {
-    stage: $('stage'), verb: $('verb'), gloss: $('gloss'), person: $('person'),
+    stage: $('stage'), tense: $('tense'), flag: $('flag'), verb: $('verb'), gloss: $('gloss'), person: $('person'),
     form: $('form'), input: $('input'), submit: $('submit'), keys: $('keys'),
-    plate: $('plate'), own: $('own'), right: $('right'),
+    plate: $('plate'), own: $('own'), right: $('right'), conj: $('conj'),
     chips: $('chips'), vos: $('vos'), tenses: $('tenses'),
     bars: $('bars'), acc: $('acc'), live: $('live'),
   };
@@ -24,6 +24,10 @@
   // Long infinitives and long answers (nos divertimos) shrink so they never overflow.
   const verbScale = (n) => (n <= 7 ? 1 : n <= 9 ? 0.84 : n <= 11 ? 0.7 : 0.58);
   const answerScale = (n) => (n <= 8 ? 1 : n <= 11 ? 0.8 : n <= 15 ? 0.6 : 0.48);
+
+  // Row labels of the conjugation table.
+  const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
+  const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
 
   // After a mouse click on a control, typing should go to the answer. Keyboard and touch users keep their place.
   const isMouse = (e) => e.pointerType === 'mouse';
@@ -71,15 +75,17 @@
     const all = D.tenses.all();
     if (all.length < 2) return;
     el.tenses.hidden = false;
+    const current = () => (session.mixed() ? D.MIX : session.tense().id);
     const sync = () => {
-      for (const b of el.tenses.children) b.setAttribute('aria-pressed', String(b.dataset.id === session.tense().id));
+      for (const b of el.tenses.children) b.setAttribute('aria-pressed', String(b.dataset.id === current()));
     };
-    for (const t of all) {
+    for (const t of [...all, { id: D.MIX, mark: 'todo' }]) {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'chip';
       b.dataset.id = t.id;
       b.textContent = t.mark;
+      if (t.name) b.title = t.name;
       b.addEventListener('click', (e) => {
         session.setTense(t.id);
         sync();
@@ -131,6 +137,95 @@
     el.acc.textContent = acc === null ? '' : String(acc);
   }
 
+  /* ---------- conjugation table (shown on a miss) ---------- */
+
+  function node(tag, className, text) {
+    const n = document.createElement(tag);
+    if (className) n.className = className;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  const form = (text, irregular) => node('span', irregular ? 'form irr' : 'form', text);
+
+  function tenseCard(title, forms, irr, current) {
+    const card = node('section', 'tcard');
+    if (current >= 0) card.dataset.current = '';
+    card.appendChild(node('h2', 'label', title));
+    const list = node('dl', 'rows');
+    const vos = session.settings().vosotros;
+    forms.forEach((f, i) => {
+      if (!vos && i === 4) return;
+      const row = node('div', i === current ? 'row cur' : 'row');
+      row.appendChild(node('dt', 'label', SHORT[i]));
+      const dd = node('dd');
+      dd.appendChild(form(f, irr[i]));
+      row.appendChild(dd);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+    return card;
+  }
+
+  function commandCard(table, irr) {
+    const card = node('section', 'tcard tcard-wide');
+    card.appendChild(node('h2', 'label', 'imperativo'));
+    const list = node('dl', 'rows');
+    const vos = session.settings().vosotros;
+    for (let i = 1; i < 6; i += 1) {
+      if (!vos && i === 4) continue;
+      const row = node('div', 'row');
+      row.appendChild(node('dt', 'label', COMMAND[i]));
+      const dd = node('dd', 'pair');
+      dd.appendChild(form(table.imperative.affirmative[i], irr.imperative.affirmative[i]));
+      dd.appendChild(form(table.imperative.negative[i], irr.imperative.negative[i]));
+      row.appendChild(dd);
+      list.appendChild(row);
+    }
+    card.appendChild(list);
+    return card;
+  }
+
+  function renderTable(p) {
+    const table = D.tableOf(p.verb);
+    const irr = D.irregularMap(p.verb);
+
+    const head = node('div', 'conj-head');
+    const title = node('p', 'conj-title');
+    title.appendChild(node('span', 'conj-inf', p.verb.inf));
+    title.appendChild(node('span', 'label', p.verb.gloss));
+    if (p.verb.lessons) title.appendChild(node('span', 'label', p.verb.lessons.join(' · ')));
+    head.appendChild(title);
+
+    const extra = node('p', 'conj-extra');
+    extra.appendChild(node('span', 'label', 'participio'));
+    extra.appendChild(form(table.participle, irr.participle));
+    extra.appendChild(node('span', 'label', 'gerundio'));
+    extra.appendChild(form(table.gerund, irr.gerund));
+    head.appendChild(extra);
+    const key = node('p', 'legend');
+    key.appendChild(form('', true));
+    key.appendChild(node('span', 'label', 'irregular'));
+    head.appendChild(key);
+
+    const grid = node('div', 'conj-grid');
+    for (const t of D.tenses.all()) {
+      grid.appendChild(tenseCard(t.name || t.mark, table[t.id], irr[t.id], t.id === p.tenseId ? p.person : -1));
+    }
+    grid.appendChild(commandCard(table, irr));
+
+    el.conj.replaceChildren(head, grid);
+    el.conj.setAttribute('aria-label', `conjugación de ${p.verb.inf}`);
+    el.conj.hidden = false;
+  }
+
+  function hideTable() {
+    if (el.conj.hidden) return;
+    el.conj.hidden = true;
+    el.conj.replaceChildren();
+    if (window.scrollY > 0) window.scrollTo(0, 0);
+  }
+
   /* ---------- flow ---------- */
 
   function nextPrompt(focusInput = true) {
@@ -141,6 +236,12 @@
     el.submit.dataset.mark = 'arrow';
     el.input.readOnly = false;
     el.input.value = '';
+    hideTable();
+    el.tense.textContent = D.tenses.all().length > 1 ? prompt.tense.name || prompt.tense.mark : '';
+    // A form missed before comes back flagged: "repaso" when it is the in-session retry, "fallado" from an earlier session.
+    const misses = prompt.missed || (prompt.retry ? 1 : 0);
+    el.flag.hidden = !(prompt.retry || prompt.missed);
+    el.flag.textContent = el.flag.hidden ? '' : `${prompt.retry ? 'repaso' : 'fallado'} ×${misses}`;
     el.verb.textContent = prompt.verb.inf;
     el.verb.style.setProperty('--verb-scale', String(verbScale(prompt.verb.inf.length)));
     el.gloss.textContent = prompt.verb.gloss;
@@ -172,6 +273,7 @@
       })
     );
     el.right.style.setProperty('--right-scale', String(answerScale(chars.length)));
+    renderTable(prompt);
     wrongShownAt = Date.now();
     announce(`incorrecto: ${res.expected}`);
   }

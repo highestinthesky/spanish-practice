@@ -10,6 +10,7 @@
   --color-ink: oklch(16% 0.010 255);
   --color-accent: oklch(55% 0.21 28);
   --color-accent-ink: oklch(99% 0.003 255);
+  --color-accent-text: oklch(47% 0.19 28);
   --color-focus: var(--color-accent);
   --color-on-accent-rule: color-mix(in oklab, var(--color-accent-ink) 16%, transparent);
 

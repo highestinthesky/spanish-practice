@@ -15,6 +15,10 @@ module.exports = {
   sonreír: ['sonrío', 'sonríes', 'sonríe', 'sonreímos', 'sonreís', 'sonríen'],
   reunirse: ['me reúno', 'te reúnes', 'se reúne', 'nos reunimos', 'os reunís', 'se reúnen'],
   irse: ['me voy', 'te vas', 'se va', 'nos vamos', 'os vais', 'se van'],
+  reírse: ['me río', 'te ríes', 'se ríe', 'nos reímos', 'os reís', 'se ríen'],
+  prohibir: ['prohíbo', 'prohíbes', 'prohíbe', 'prohibimos', 'prohibís', 'prohíben'],
+  torcerse: ['me tuerzo', 'te tuerces', 'se tuerce', 'nos torcemos', 'os torcéis', 'se tuercen'],
+  caerse: ['me caigo', 'te caes', 'se cae', 'nos caemos', 'os caéis', 'se caen'],
   // Spot checks of rule-covered verbs (data must match both the rules and these).
   decir: ['digo', 'dices', 'dice', 'decimos', 'decís', 'dicen'],
   tener: ['tengo', 'tienes', 'tiene', 'tenemos', 'tenéis', 'tienen'],

@@ -123,3 +123,50 @@ test('pick: a pool smaller than the window still avoids the most recent verbs it
     if (recent.length > S.RECENT_VERBS) recent.shift();
   }
 });
+
+test('weightOf: verbs that follow the plain pattern weigh less', () => {
+  assert.equal(S.weightOf(undefined, false), S.UNSEEN * S.PLAIN);
+  assert.equal(S.weightOf({ box: 0, seen: 1 }, false), 8 * S.PLAIN);
+});
+
+test('buildPool: entries carry their tense and whether the verb is tricky in it', () => {
+  const t = { id: 'present', persons: ['a', 'b'] };
+  const vs = [
+    { inf: 'x', tags: ['regular'], forms: { present: ['1', '2'] }, tricky: { present: false } },
+    { inf: 'y', tags: ['e→ie'], forms: { present: ['1', '2'] }, tricky: { present: true } },
+    { inf: 'z', tags: ['regular'], forms: { present: ['1', '2'] } },
+  ];
+  const pool = S.buildPool({ verbs: vs, tense: t, chips: [], vosotros: true });
+  assert.equal(pool[0].tense, t);
+  assert.deepEqual(pool.map((p) => p.tricky), [false, false, true, true, true, true]);
+});
+
+test('restingVerbs: a verb rests after a right answer, for longer the better it is known', () => {
+  const min = 60 * 1000;
+  const items = {
+    'present|pensar|0': { box: 3, seen: 1, misses: 0, last: 0 },
+    'preterite|pensar|2': { box: 2, seen: 2, misses: 1, last: -10 * min },
+    'present|poder|1': { box: 0, seen: 1, misses: 1, last: 0 },
+    'present|hablar|1': { box: 1, seen: 3, misses: 1, last: 0 },
+  };
+  assert.deepEqual([...S.restingVerbs(items, 30 * min)].sort(), ['pensar']);
+  assert.deepEqual([...S.restingVerbs(items, min)].sort(), ['hablar', 'pensar']);
+  assert.deepEqual([...S.restingVerbs(items, 2 * 60 * min)], []);
+});
+
+test('restingVerbs: the latest answer decides, so a miss wakes a resting verb', () => {
+  const items = {
+    'present|pensar|0': { box: 4, seen: 3, misses: 0, last: 100 },
+    'present|pensar|1': { box: 0, seen: 1, misses: 1, last: 200 },
+  };
+  assert.equal(S.restingVerbs(items, 300).size, 0);
+});
+
+test('pick: resting verbs stay out while others are awake, and come back when nothing else is left', () => {
+  const pool = S.buildPool({ verbs: verbs.slice(0, 3), tense, chips: [], vosotros: true });
+  const items = { 'present|pensar|0': { box: 4, seen: 2, misses: 0, last: 1000 } };
+  const rng = mulberry32(9);
+  for (let i = 0; i < 300; i += 1) assert.notEqual(S.pick(pool, items, null, rng, [], 2000).verb.inf, 'pensar');
+  const onlyPensar = pool.filter((p) => p.verb.inf === 'pensar');
+  assert.equal(S.pick(onlyPensar, items, null, rng, [], 2000).verb.inf, 'pensar');
+});

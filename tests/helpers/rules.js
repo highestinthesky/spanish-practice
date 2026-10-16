@@ -50,6 +50,7 @@ function conjugate(inf, tags) {
     let yo = src;
     if (/gu$/.test(src)) yo = src.slice(0, -1); // seguir → sig
     else if (/g$/.test(src)) yo = `${src.slice(0, -1)}j`; // escoger → escoj
+    else if (/c$/.test(src)) yo = `${src.slice(0, -1)}z`; // torcer → tuerz
     forms[0] = `${yo}o`;
   }
 
