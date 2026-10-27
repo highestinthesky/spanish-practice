@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-10-26",
+    "macrostructure": "App Shell (custom)",
+    "theme": "custom",
+    "theme_axes": "light / high-contrast-serif / cool",
+    "vibe": "warm paper workbench, indigo action",
+    "enrichment": "none",
+    "brief": "Conjugation drill reworked into an app: side-rail settings, practice card, GSAP letter motion"
+  },
+  {
     "date": "2026-10-15",
     "macrostructure": "Marquee Hero",
     "theme": "Grid",

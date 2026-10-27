@@ -328,3 +328,21 @@ test('chips saved by the old include-list menu become the matching unticked type
   assert.deepEqual([...session.settings().off].sort(), D.TYPE_TAGS.filter((t) => !['e→ie', 'o→ue', 'regular'].includes(t)).sort());
   assert.deepEqual(session.settings().chips, []);
 });
+
+test('streak counts consecutive right answers, best keeps the high mark, count totals answers', () => {
+  const { session } = setup();
+  assert.equal(session.streak(), 0);
+  assert.equal(session.best(), 0);
+  assert.equal(session.count(), 0);
+  const p = session.next();
+  session.answer(p, p.expected);
+  session.answer(p, p.expected);
+  assert.equal(session.streak(), 2);
+  session.answer(p, 'nope');
+  assert.equal(session.streak(), 0);
+  assert.equal(session.best(), 2);
+  session.answer(p, p.expected);
+  assert.equal(session.streak(), 1);
+  assert.equal(session.best(), 2);
+  assert.equal(session.count(), 4);
+});

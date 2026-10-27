@@ -7,74 +7,95 @@
   <title>conjugar</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Geist:wght@400..700&family=Geist+Mono:wght@500;600&display=swap">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div class="rails" aria-hidden="true"></div>
-  <main class="shell">
-    <header class="top">
-      <button class="menubar" id="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">
-        <span class="menubar-summary" id="summary"></span>
-        <span class="menubar-action"><span id="menu-word">menú</span><span class="menubar-mark" aria-hidden="true"></span></span>
-      </button>
-      <div class="menu" id="menu" hidden>
-        <fieldset class="group" id="book">
-          <legend class="label group-title">libro</legend>
-        </fieldset>
-        <fieldset class="group" id="types">
-          <legend class="label group-title">tipo de verbo</legend>
-        </fieldset>
-        <fieldset class="group group-vos">
-          <legend class="label group-title">personas</legend>
-          <label class="opt opt-switch">
-            <input class="opt-input" id="vos" type="checkbox" role="switch">
-            <span class="opt-name">vosotros</span>
-            <span class="switch" aria-hidden="true"><span class="switch-on">sí</span><span class="switch-off">no</span></span>
-          </label>
-        </fieldset>
-        <div class="menu-foot">
-          <button class="done" id="menu-done" type="button">listo</button>
-        </div>
+  <div class="app" id="app" data-drawer="closed">
+    <aside class="side" id="side" aria-label="ajustes">
+      <div class="side-head">
+        <span class="brand" aria-hidden="true">conjugar<span class="brand-dot"></span></span>
+        <button class="close" id="close" type="button" aria-label="cerrar"></button>
       </div>
-    </header>
 
-    <section class="stage" id="stage" data-mode="asking">
-      <p class="meta"><span class="label tense-name" id="tense"></span><span class="flag" id="flag" hidden></span></p>
-      <button class="verb" id="verb" type="button" aria-expanded="false" aria-controls="gloss"></button>
-      <p class="label gloss" id="gloss" hidden></p>
-      <p class="person" id="person"></p>
+      <fieldset class="group" id="book">
+        <legend class="group-h">libro</legend>
+      </fieldset>
 
-      <form class="answer" id="form" autocomplete="off" novalidate>
-        <div class="answer-row">
-          <input class="answer-input" id="input" type="text" inputmode="text" enterkeyhint="go"
-                 autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"
-                 lang="es" aria-label="forma conjugada">
-          <button class="submit" id="submit" type="submit" aria-label="comprobar" data-mark="arrow"></button>
+      <fieldset class="group group-grow" id="types">
+        <legend class="group-h">tipo de verbo</legend>
+      </fieldset>
+
+      <div class="side-foot">
+        <label class="switch">
+          <input class="switch-input" id="vos" type="checkbox" role="switch">
+          <span class="switch-label">vosotros</span>
+          <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </label>
+        <p class="pool" id="pool" aria-live="polite"></p>
+      </div>
+    </aside>
+
+    <div class="scrim" id="scrim" aria-hidden="true"></div>
+
+    <main class="main" id="main">
+      <header class="bar">
+        <button class="menu" id="menu" type="button" aria-label="ajustes" aria-controls="side" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+        </button>
+        <div class="stats">
+          <div class="stat stat-streak" id="streak-box" title="racha">
+            <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.6 2.2-4.6.2 1.6 1 2.6 2.3 3C11 9 10.8 6 12 3z"/></svg>
+            <output id="streak" aria-label="racha"></output>
+            <output class="stat-best" id="best" aria-label="mejor racha" hidden></output>
+          </div>
+          <div class="stat" title="acierto">
+            <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></svg>
+            <output class="acc" id="acc" aria-label="acierto"></output>
+          </div>
+          <div class="stat" title="respuestas">
+            <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7"/></svg>
+            <output id="count" aria-label="respuestas"></output>
+          </div>
         </div>
-      </form>
+      </header>
 
-      <div class="keys" id="keys"></div>
+      <section class="stage" id="stage" data-mode="asking">
+        <div class="card" id="card">
+          <p class="meta">
+            <span class="person" id="person"></span>
+            <span class="flag" id="flag" hidden></span>
+          </p>
+          <h1 class="verb" id="verb" lang="es"></h1>
+          <p class="gloss" id="gloss" lang="en"></p>
 
-      <button class="plate" id="plate" type="button" aria-label="siguiente" tabindex="-1">
-        <span class="plate-inner">
-          <span class="label own" id="own"></span>
-          <span class="right" id="right"></span>
-          <span class="plate-go" aria-hidden="true"></span>
-        </span>
-      </button>
-    </section>
+          <form class="answer" id="form" autocomplete="off" novalidate>
+            <div class="field" id="field">
+              <input class="answer-input" id="input" type="text" inputmode="text" enterkeyhint="go"
+                     autocapitalize="none" autocorrect="off" autocomplete="off" spellcheck="false"
+                     lang="es" aria-label="forma conjugada">
+              <span class="echo" id="echo" aria-hidden="true"></span>
+              <button class="submit" id="submit" type="submit" aria-label="comprobar" data-mark="arrow"></button>
+            </div>
+          </form>
 
-    <section class="conj" id="conj" hidden></section>
+          <div class="fix" id="fix" hidden>
+            <span class="right" id="right" lang="es"></span>
+            <button class="next" id="next" type="button" aria-label="siguiente"></button>
+          </div>
 
-    <footer class="meter">
-      <div class="bars" id="bars" aria-hidden="true"></div>
-      <output class="acc" id="acc" hidden></output>
-    </footer>
-  </main>
+          <div class="keys" id="keys"></div>
+          <button class="empty" id="empty" type="button" aria-controls="side" hidden></button>
+        </div>
+        <div class="burst" id="burst" aria-hidden="true"></div>
+        <section class="conj" id="conj" hidden></section>
+      </section>
+    </main>
+  </div>
   <p class="sr" id="live" role="status" aria-live="polite"></p>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt" crossorigin="anonymous"></script>
   <script src="js/core/normalize.js"></script>
   <script src="js/core/tenses.js"></script>
   <script src="js/core/store.js"></script>

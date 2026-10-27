@@ -35,7 +35,15 @@ function ratio(fg, bg) {
 
 test('ink on paper is at least 7:1', () => assert.ok(ratio('color-ink', 'color-paper') >= 7));
 test('muted label text on paper is at least 4.5:1', () => assert.ok(ratio('color-muted', 'color-paper') >= 4.5));
-test('text on the accent plate is at least 4.5:1', () => assert.ok(ratio('color-accent-ink', 'color-accent') >= 4.5));
+test('person label on its soft pill is at least 4.5:1', () => assert.ok(ratio('color-accent', 'color-accent-soft') >= 4.5));
+test('correct and wrong text reads on their tints at 4.5:1', () => {
+  assert.ok(ratio('color-good', 'color-good-soft') >= 4.5);
+  assert.ok(ratio('color-bad', 'color-bad-soft') >= 4.5);
+});
+test('muted labels on the side rail are at least 4.5:1', () => assert.ok(ratio('color-muted', 'color-paper-2') >= 4.5));
+test('the correction text on ink is at least 7:1', () => assert.ok(ratio('color-surface', 'color-ink') >= 7));
+test('irregular forms on the current-row tint are at least 4.5:1', () => assert.ok(ratio('color-accent-text', 'color-accent-soft') >= 4.5));
+test('text on the accent buttons is at least 4.5:1', () => assert.ok(ratio('color-accent-ink', 'color-accent') >= 4.5));
 test('accent against paper is at least 3:1 for UI boundaries', () => assert.ok(ratio('color-accent', 'color-paper') >= 3));
-test('paper text on ink (correct state) is at least 7:1', () => assert.ok(ratio('color-paper', 'color-ink') >= 7));
+test('paper text on ink is at least 7:1', () => assert.ok(ratio('color-paper', 'color-ink') >= 7));
 test('irregular forms in the table (accent text on paper) are at least 4.5:1', () => assert.ok(ratio('color-accent-text', 'color-paper') >= 4.5));

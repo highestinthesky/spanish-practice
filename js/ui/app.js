@@ -1,34 +1,45 @@
 (function () {
   'use strict';
   const D = window.Drill;
+  const G = window.gsap || null;
   const $ = (id) => document.getElementById(id);
 
   const ACCENT_KEYS = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ'];
   const CORRECT_DELAY_MS = 320;
+  const CORRECT_DELAY_ANIMATED_MS = 560;
+  const MILESTONE = 5;
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const narrow = window.matchMedia('(max-width: 860px)');
+  // Without GSAP (offline, blocked CDN) or with reduced motion, every state change is instant.
+  const animate = () => Boolean(G) && !reduceMotion.matches;
 
   const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store: D.store });
 
   const el = {
-    stage: $('stage'), tense: $('tense'), flag: $('flag'), verb: $('verb'), gloss: $('gloss'), person: $('person'),
-    form: $('form'), input: $('input'), submit: $('submit'), keys: $('keys'),
-    plate: $('plate'), own: $('own'), right: $('right'), conj: $('conj'),
-    menuToggle: $('menu-toggle'), menuWord: $('menu-word'), summary: $('summary'), menu: $('menu'),
-    book: $('book'), types: $('types'), vos: $('vos'), menuDone: $('menu-done'),
-    bars: $('bars'), acc: $('acc'), live: $('live'),
+    app: $('app'), side: $('side'), main: $('main'), menu: $('menu'), close: $('close'), scrim: $('scrim'),
+    book: $('book'), types: $('types'), vos: $('vos'), pool: $('pool'),
+    streakBox: $('streak-box'), streak: $('streak'), best: $('best'), acc: $('acc'), count: $('count'),
+    stage: $('stage'), card: $('card'), person: $('person'), flag: $('flag'), verb: $('verb'), gloss: $('gloss'),
+    form: $('form'), field: $('field'), input: $('input'), echo: $('echo'), submit: $('submit'),
+    fix: $('fix'), right: $('right'), next: $('next'), keys: $('keys'), empty: $('empty'),
+    burst: $('burst'), conj: $('conj'), live: $('live'),
   };
 
   let prompt = null;
   let mode = 'asking';
   let timer = 0;
   let wrongShownAt = 0;
+  let settingsDirty = false;
 
   // Long infinitives and long answers (nos divertimos) shrink so they never overflow.
-  const verbScale = (n) => (n <= 7 ? 1 : n <= 9 ? 0.84 : n <= 11 ? 0.7 : 0.58);
-  const answerScale = (n) => (n <= 8 ? 1 : n <= 11 ? 0.8 : n <= 15 ? 0.6 : 0.48);
+  const verbScale = (n) => (n <= 7 ? 1 : n <= 9 ? 0.86 : n <= 11 ? 0.72 : 0.6);
+  const answerScale = (n) => (n <= 10 ? 1 : n <= 14 ? 0.8 : 0.64);
 
   // Row labels of the conjugation table.
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
+  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2' };
 
   function announce(text) {
     el.live.textContent = '';
@@ -40,139 +51,231 @@
     el.stage.dataset.mode = next;
   }
 
-  /* ---------- operating menu ---------- */
+  function node(tag, className, text) {
+    const n = document.createElement(tag);
+    if (className) n.className = className;
+    if (text != null) n.textContent = text;
+    return n;
+  }
 
-  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2' };
-  let menuDirty = false;
+  function letters(target, text, marks) {
+    target.replaceChildren(...Array.from(text).map((ch, i) => node('span', marks && marks[i] ? 'ch miss' : 'ch', ch)));
+    return Array.from(target.children);
+  }
 
-  // One row of the menu: a real input, a drawn box, the name, an optional example, and a live count.
+  /* ---------- motion ---------- */
+
+  function enterLetters(chars, delay = 0) {
+    G.fromTo(
+      chars,
+      { y: '0.55em', rotationX: -85, opacity: 0 },
+      { y: 0, rotationX: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.8)', stagger: 0.032, delay, clearProps: 'transform,opacity' }
+    );
+  }
+
+  // Letters drift apart from the middle and slide away.
+  function scatterLetters(chars, done) {
+    const mid = (chars.length - 1) / 2;
+    G.to(chars, {
+      x: (i) => (i - mid) * 16 + G.utils.random(-8, 8),
+      y: () => G.utils.random(-80, -36),
+      rotation: () => G.utils.random(-40, 40),
+      opacity: 0,
+      duration: 0.4,
+      ease: 'power2.in',
+      stagger: { each: 0.014, from: 'center' },
+      onComplete: done,
+    });
+  }
+
+  // A detached copy of the old text flies out while the new text is already usable.
+  function ghost(source) {
+    if (!source.textContent.trim() || !source.getClientRects().length) return;
+    const host = el.card.getBoundingClientRect();
+    const r = source.getBoundingClientRect();
+    const g = source.cloneNode(true);
+    g.removeAttribute('id');
+    g.setAttribute('aria-hidden', 'true');
+    g.classList.add('ghost');
+    Object.assign(g.style, {
+      left: `${r.left - host.left}px`,
+      top: `${r.top - host.top}px`,
+      width: `${r.width}px`,
+      height: `${r.height}px`,
+      color: getComputedStyle(source).color,
+    });
+    el.card.appendChild(g);
+    scatterLetters(Array.from(g.querySelectorAll('.ch')), () => g.remove());
+  }
+
+  function burst(n) {
+    const stage = el.stage.getBoundingClientRect();
+    const from = el.submit.getBoundingClientRect();
+    const cx = from.left + from.width / 2 - stage.left;
+    const cy = from.top + from.height / 2 - stage.top;
+    for (let i = 0; i < n; i += 1) {
+      const s = node('span', `spark spark-${i % 3}`);
+      s.style.left = `${cx}px`;
+      s.style.top = `${cy}px`;
+      el.burst.appendChild(s);
+      const a = Math.random() * Math.PI * 2;
+      const d = 36 + Math.random() * (n > 12 ? 170 : 90);
+      G.fromTo(
+        s,
+        { x: -4, y: -4, scale: 1, rotation: 0, opacity: 1 },
+        {
+          x: Math.cos(a) * d,
+          y: Math.sin(a) * d - 24,
+          rotation: G.utils.random(-200, 200),
+          scale: 0.3,
+          opacity: 0,
+          duration: 0.55 + Math.random() * 0.35,
+          ease: 'power3.out',
+          onComplete: () => s.remove(),
+        }
+      );
+    }
+  }
+
+  function pop(target, scale = 1.18) {
+    G.fromTo(target, { scale: 1 }, { scale, duration: 0.14, yoyo: true, repeat: 1, ease: 'power2.out', clearProps: 'transform' });
+  }
+
+  function shake(target, dist = 12) {
+    const k = [0, -dist, dist * 0.8, -dist * 0.55, dist * 0.3, 0];
+    G.fromTo(target, { x: 0 }, { keyframes: { x: k }, duration: 0.42, ease: 'none', clearProps: 'transform' });
+  }
+
+  /* ---------- side rail ---------- */
+
+  // One row of the rail: a real input, a drawn box, the name, an optional example, and a live count.
   function option({ type, name, value, label, example }) {
-    const row = node('label', `opt opt-${type}`);
+    const row = node('label', 'opt');
     const input = node('input', 'opt-input');
     input.type = type;
     if (name) input.name = name;
     input.value = value;
-    row.appendChild(input);
-    row.appendChild(node('span', 'opt-box'));
-    row.lastChild.setAttribute('aria-hidden', 'true');
-    row.appendChild(node('span', 'opt-name', label));
+    const box = node('span', 'opt-box');
+    box.setAttribute('aria-hidden', 'true');
+    row.append(input, box, node('span', 'opt-name', label));
     if (example) row.appendChild(node('span', 'opt-ex', example));
     row.appendChild(node('span', 'opt-count'));
     return row;
   }
 
-  function buildMenu() {
+  function buildRail() {
+    const seg = node('div', 'seg');
     for (const book of ['all', 'D1', 'D2']) {
-      const row = option({ type: 'radio', name: 'book', value: book, label: BOOK_NAMES[book] });
-      row.querySelector('input').addEventListener('change', () => changed(() => session.setBook(book)));
-      el.book.appendChild(row);
+      const row = node('label', 'seg-opt');
+      const input = node('input', 'opt-input');
+      input.type = 'radio';
+      input.name = 'book';
+      input.value = book;
+      input.addEventListener('change', () => changed(() => session.setBook(book)));
+      row.append(input, node('span', null, BOOK_NAMES[book]), node('span', 'seg-n'));
+      seg.appendChild(row);
     }
+    el.book.appendChild(seg);
 
-    const all = option({ type: 'checkbox', value: '', label: 'todos los tipos' });
-    all.classList.add('opt-all');
-    all.querySelector('input').addEventListener('change', (e) => changed(() => session.setAllTypes(e.target.checked)));
-    el.types.appendChild(all);
+    const top = node('div', 'types-top');
+    const all = node('label', 'all');
+    const allInput = node('input', 'opt-input');
+    allInput.type = 'checkbox';
+    allInput.value = '';
+    allInput.addEventListener('change', () => changed(() => session.setAllTypes(allInput.checked)));
+    all.append(allInput, node('span', null, 'todos'), node('span', 'all-n'));
+    top.appendChild(all);
+    el.types.appendChild(top);
 
     for (const group of D.TYPE_GROUPS) {
       const box = node('div', 'type-group');
-      box.appendChild(node('p', 'label type-group-name', group.name));
-      const opts = node('div', 'type-opts');
+      box.appendChild(node('p', 'type-group-name', group.name));
       for (const tag of group.tags) {
         const info = D.TYPE_INFO[tag];
         const row = option({ type: 'checkbox', value: tag, label: info.name, example: info.example });
         row.querySelector('input').addEventListener('change', () => changed(() => session.toggleType(tag)));
-        opts.appendChild(row);
+        box.appendChild(row);
       }
-      box.appendChild(opts);
       el.types.appendChild(box);
     }
 
     el.vos.addEventListener('change', () => changed(() => session.setVosotros(el.vos.checked)));
-    el.menuToggle.addEventListener('click', () => (el.menu.hidden ? openMenu() : closeMenu(el.menuToggle)));
-    el.menuDone.addEventListener('click', () => closeMenu(el.input));
-    el.menuToggle.parentElement.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeMenu(el.menuToggle);
-    });
-    syncMenu();
+    syncRail();
   }
 
+  // On a wide screen a change takes effect at once; inside the drawer it waits until the drawer closes.
   function changed(apply) {
     apply();
-    menuDirty = true;
-    syncMenu();
+    syncRail();
+    if (drawerOpen()) settingsDirty = true;
+    else refresh();
   }
 
-  // Inputs, counts and the summary always mirror the stored settings.
-  function syncMenu() {
+  function refresh() {
+    settingsDirty = false;
+    if (mode !== 'correct') nextPrompt(false);
+  }
+
+  // Inputs and counts always mirror the stored settings.
+  function syncRail() {
     const st = session.settings();
     for (const input of el.book.querySelectorAll('input')) {
       input.checked = input.value === st.book;
-      input.closest('.opt').querySelector('.opt-count').textContent = String(session.bookCount(input.value));
+      input.closest('.seg-opt').querySelector('.seg-n').textContent = String(session.bookCount(input.value));
     }
     for (const input of el.types.querySelectorAll('input')) {
-      const row = input.closest('.opt');
       if (!input.value) {
         input.checked = st.off.length === 0;
-        row.querySelector('.opt-count').textContent = String(session.bookCount(st.book));
+        input.closest('.all').querySelector('.all-n').textContent = String(session.bookCount(st.book));
         continue;
       }
       const n = session.countFor(input.value);
       input.checked = session.typeOn(input.value);
       input.disabled = n === 0;
-      row.querySelector('.opt-count').textContent = String(n);
+      input.closest('.opt').querySelector('.opt-count').textContent = String(n);
     }
     el.vos.checked = st.vosotros;
-    // Nothing to drill: the menu cannot be closed until something is ticked again.
-    const empty = session.poolSize() === 0;
-    el.menuDone.disabled = empty;
-    el.menuToggle.setAttribute('aria-disabled', String(empty && !el.menu.hidden));
-    renderSummary();
-  }
-
-  const typeName = (t) => (D.TYPE_INFO[t] ? D.TYPE_INFO[t].name : t);
-
-  // Says what is drilled in as few words as possible: everything, everything but a few, or the few that are left.
-  function typesText(off) {
-    const on = D.TYPE_TAGS.filter((t) => !off.includes(t));
-    if (!off.length) return 'todos los tipos';
-    if (!on.length) return 'ningún tipo';
-    if (off.length <= 2 && off.length <= on.length) return `sin ${off.map(typeName).join(', ')}`;
-    if (on.length <= 3) return on.map(typeName).join(', ');
-    return `${on.length} tipos`;
-  }
-
-  function renderSummary() {
-    const st = session.settings();
-    const parts = [session.tense() ? session.tense().name : ''];
-    parts.push(typesText(st.off));
-    if (st.book !== 'all') parts.push(BOOK_NAMES[st.book]);
     const n = session.poolSize();
-    const count = `${n} ${n === 1 ? 'verbo' : 'verbos'}`;
-    parts.push(count);
-    if (!st.vosotros) parts.push('sin vosotros');
-    el.summary.replaceChildren(
-      ...parts.filter(Boolean).map((p, i) => node('span', i === 0 ? 'sum sum-lead' : p === count && n === 0 ? 'sum sum-alert' : 'sum', p))
-    );
+    const words = n === 1 ? 'verbo' : 'verbos';
+    el.pool.replaceChildren(node('span', 'pool-n', String(n)), node('span', null, words));
+    el.pool.toggleAttribute('data-empty', n === 0);
+    el.empty.textContent = `0 ${words}`;
   }
 
-  function openMenu() {
-    el.menu.hidden = false;
-    el.menuToggle.setAttribute('aria-expanded', 'true');
-    el.menuWord.textContent = 'cerrar';
-    menuDirty = false;
-    syncMenu();
+  /* ---------- drawer (narrow screens) ---------- */
+
+  const drawerOpen = () => el.app.dataset.drawer === 'open';
+
+  function syncInert() {
+    el.side.inert = narrow.matches && !drawerOpen();
+    el.main.inert = narrow.matches && drawerOpen();
   }
 
-  // A changed setup gets a fresh prompt when the menu closes, not on every tick.
-  function closeMenu(focusTo) {
-    if (el.menu.hidden || session.poolSize() === 0) return;
-    el.menu.hidden = true;
-    el.menuToggle.setAttribute('aria-expanded', 'false');
-    el.menuWord.textContent = 'menú';
-    if (menuDirty && mode !== 'correct') nextPrompt(false);
-    menuDirty = false;
-    focusTo.focus({ preventScroll: true });
+  function openRail() {
+    if (!narrow.matches) {
+      const first = el.types.querySelector('.opt-input:not(:disabled)');
+      if (first) first.focus();
+      return;
+    }
+    el.app.dataset.drawer = 'open';
+    el.menu.setAttribute('aria-expanded', 'true');
+    syncInert();
+    const first = el.book.querySelector('.opt-input:checked');
+    if (first) first.focus({ preventScroll: true });
   }
+
+  function closeRail() {
+    if (!drawerOpen()) return;
+    el.app.dataset.drawer = 'closed';
+    el.menu.setAttribute('aria-expanded', 'false');
+    syncInert();
+    if (settingsDirty) refresh();
+    if (mode === 'asking') el.input.focus({ preventScroll: true });
+    else if (mode === 'empty') el.empty.focus({ preventScroll: true });
+    else el.menu.focus({ preventScroll: true });
+  }
+
+  /* ---------- answer area ---------- */
 
   function insertAtCaret(ch) {
     if (el.input.readOnly) return;
@@ -184,10 +287,8 @@
 
   function buildKeys() {
     for (const ch of ACCENT_KEYS) {
-      const b = document.createElement('button');
+      const b = node('button', 'key', ch);
       b.type = 'button';
-      b.className = 'key';
-      b.textContent = ch;
       b.setAttribute('aria-label', ch);
       // Keep the input focused so the mobile keyboard stays open.
       b.addEventListener('pointerdown', (e) => e.preventDefault());
@@ -196,33 +297,21 @@
     }
   }
 
-  function buildBars() {
-    for (let i = 0; i < 10; i += 1) {
-      const s = document.createElement('span');
-      s.className = 'bar';
-      s.dataset.state = 'empty';
-      el.bars.appendChild(s);
-    }
-  }
-
-  function renderMeter() {
-    const recent = session.recent();
-    Array.from(el.bars.children).forEach((b, i) => {
-      b.dataset.state = recent[i] || 'empty';
-    });
+  function renderStats(ok) {
+    const streak = session.streak();
+    const best = session.best();
     const acc = session.accuracy();
-    el.acc.hidden = acc === null;
+    el.streak.textContent = String(streak);
+    el.best.hidden = best <= streak;
+    el.best.textContent = String(best);
     el.acc.textContent = acc === null ? '' : String(acc);
+    el.count.textContent = String(session.count());
+    if (ok === undefined || !animate()) return;
+    if (ok) pop(el.streakBox, streak % MILESTONE === 0 ? 1.32 : 1.16);
+    else shake(el.streakBox, 5);
   }
 
   /* ---------- conjugation table (shown on a miss) ---------- */
-
-  function node(tag, className, text) {
-    const n = document.createElement(tag);
-    if (className) n.className = className;
-    if (text != null) n.textContent = text;
-    return n;
-  }
 
   const form = (text, irregular) => node('span', irregular ? 'form irr' : 'form', text);
 
@@ -280,11 +369,11 @@
     extra.appendChild(form(table.participle, irr.participle));
     extra.appendChild(node('span', 'label', 'gerundio'));
     extra.appendChild(form(table.gerund, irr.gerund));
-    head.appendChild(extra);
-    const key = node('p', 'legend');
+    const key = node('span', 'legend');
     key.appendChild(form('', true));
     key.appendChild(node('span', 'label', 'irregular'));
-    head.appendChild(key);
+    extra.appendChild(key);
+    head.appendChild(extra);
 
     const grid = node('div', 'conj-grid');
     for (const t of D.TABLE_TENSES) {
@@ -295,6 +384,10 @@
     el.conj.replaceChildren(head, grid);
     el.conj.setAttribute('aria-label', `conjugación de ${p.verb.inf}`);
     el.conj.hidden = false;
+    if (animate()) {
+      G.fromTo(head, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, delay: 0.25, ease: 'power3.out', clearProps: 'transform,opacity' });
+      G.fromTo(grid.children, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.3, stagger: 0.04, ease: 'power3.out', clearProps: 'transform,opacity' });
+    }
   }
 
   function hideTable() {
@@ -306,54 +399,94 @@
 
   /* ---------- flow ---------- */
 
+  function showEmpty() {
+    if (prompt && animate()) ghost(el.verb);
+    prompt = null;
+    setMode('empty');
+    el.fix.hidden = true;
+    el.empty.hidden = false;
+    hideTable();
+  }
+
   function nextPrompt(focusInput = true) {
     clearTimeout(timer);
-    prompt = session.next();
-    if (!prompt) return;
+    if (prompt && animate()) {
+      ghost(el.verb);
+      if (mode === 'correct') ghost(el.echo);
+      if (mode === 'wrong') ghost(el.right);
+    }
+    const p = session.next();
+    if (!p) {
+      showEmpty();
+      return;
+    }
+    prompt = p;
     setMode('asking');
+    el.empty.hidden = true;
+    el.fix.hidden = true;
+    el.echo.replaceChildren();
     el.submit.dataset.mark = 'arrow';
     el.input.readOnly = false;
     el.input.value = '';
     hideTable();
-    el.tense.textContent = D.tenses.all().length > 1 ? prompt.tense.name || prompt.tense.mark : '';
+
     // A form missed before comes back flagged: "repaso" when it is the in-session retry, "fallado" from an earlier session.
     const misses = prompt.missed || (prompt.retry ? 1 : 0);
     el.flag.hidden = !(prompt.retry || prompt.missed);
     el.flag.textContent = el.flag.hidden ? '' : `${prompt.retry ? 'repaso' : 'fallado'} ×${misses}`;
-    el.verb.textContent = prompt.verb.inf;
+
+    const chars = letters(el.verb, prompt.verb.inf);
+    el.verb.setAttribute('aria-label', prompt.verb.inf);
     el.verb.style.setProperty('--verb-scale', String(verbScale(prompt.verb.inf.length)));
     el.gloss.textContent = prompt.verb.gloss;
-    el.gloss.hidden = true;
-    el.verb.setAttribute('aria-expanded', 'false');
     el.person.textContent = prompt.personLabel;
+
+    if (animate()) {
+      enterLetters(chars, 0.1);
+      G.fromTo([el.person, el.flag], { opacity: 0, y: 8, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.06, ease: 'back.out(2)', clearProps: 'transform,opacity' });
+      G.fromTo(el.gloss, { opacity: 0 }, { opacity: 1, duration: 0.4, delay: 0.25, clearProps: 'opacity' });
+    }
     if (focusInput) el.input.focus({ preventScroll: true });
   }
 
-  function showCorrect() {
+  function showCorrect(res) {
     setMode('correct');
     el.submit.dataset.mark = 'tick';
     el.input.readOnly = true;
     announce('correcto');
-    timer = setTimeout(() => nextPrompt(true), CORRECT_DELAY_MS);
+    const chars = letters(el.echo, D.normalize.norm(res.expected));
+    if (animate()) {
+      G.to(chars, { keyframes: { y: [0, -14, 0], scale: [1, 1.22, 1] }, duration: 0.42, ease: 'power1.inOut', stagger: 0.035 });
+      G.to(el.verb.children, { keyframes: { y: [0, -8, 0] }, duration: 0.36, ease: 'power1.inOut', stagger: 0.025, clearProps: 'transform' });
+      pop(el.submit, 1.12);
+      burst(session.streak() % MILESTONE === 0 ? 28 : 10);
+    }
+    timer = setTimeout(() => nextPrompt(true), animate() ? CORRECT_DELAY_ANIMATED_MS : CORRECT_DELAY_MS);
   }
 
-  function showWrong(res, typed) {
+  function showWrong(res) {
     setMode('wrong');
     el.input.readOnly = true;
-    el.own.textContent = typed.trim();
-    const chars = Array.from(D.normalize.norm(res.expected));
-    el.right.replaceChildren(
-      ...chars.map((ch, i) => {
-        const s = document.createElement('span');
-        if (res.marks[i]) s.className = 'miss';
-        s.textContent = ch;
-        return s;
-      })
-    );
+    el.fix.hidden = false;
+    const chars = letters(el.right, D.normalize.norm(res.expected), res.marks);
     el.right.style.setProperty('--right-scale', String(answerScale(chars.length)));
     renderTable(prompt);
     wrongShownAt = Date.now();
     announce(`incorrecto: ${res.expected}`);
+    if (!animate()) return;
+    shake(el.card);
+    G.fromTo(el.fix, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.28, ease: 'power3.out', clearProps: 'transform,opacity' });
+    // The missed letters pulse only once the whole word has landed, so the two never fight over a letter.
+    const tl = G.timeline({ delay: 0.08 });
+    tl.fromTo(
+      chars,
+      { opacity: 0, y: -22, rotation: -10 },
+      { opacity: 1, y: 0, rotation: 0, duration: 0.42, ease: 'back.out(2.2)', stagger: 0.035, clearProps: 'transform,opacity' }
+    );
+    const misses = chars.filter((c) => c.classList.contains('miss'));
+    if (misses.length) {
+      tl.to(misses, { keyframes: { scale: [1, 1.3, 1] }, duration: 0.32, ease: 'power2.out', stagger: 0.05, clearProps: 'transform' });
+    }
   }
 
   function onSubmit(repeat = false) {
@@ -364,11 +497,14 @@
       return;
     }
     const typed = el.input.value;
-    if (!typed.trim()) return;
+    if (!typed.trim()) {
+      if (animate()) shake(el.field, 4);
+      return;
+    }
     const res = session.answer(prompt, typed);
-    renderMeter();
-    if (res.ok) showCorrect();
-    else showWrong(res, typed);
+    renderStats(res.ok);
+    if (res.ok) showCorrect(res);
+    else showWrong(res);
   }
 
   /* ---------- events ---------- */
@@ -383,20 +519,30 @@
     e.preventDefault();
     onSubmit();
   });
-  el.plate.addEventListener('click', () => {
+  el.next.addEventListener('click', () => {
     if (!D.advanceGuard.shouldIgnoreEnter({ mode, repeat: false, shownAt: wrongShownAt, now: Date.now() })) nextPrompt(true);
   });
-  el.verb.addEventListener('click', () => {
-    const open = el.gloss.hidden;
-    el.gloss.hidden = !open;
-    el.verb.setAttribute('aria-expanded', String(open));
-    if (mode === 'asking') el.input.focus({ preventScroll: true });
+  el.empty.addEventListener('click', openRail);
+
+  el.menu.addEventListener('click', openRail);
+  el.close.addEventListener('click', closeRail);
+  el.scrim.addEventListener('click', closeRail);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && drawerOpen()) closeRail();
+  });
+  narrow.addEventListener('change', () => {
+    if (!narrow.matches && drawerOpen()) {
+      el.app.dataset.drawer = 'closed';
+      el.menu.setAttribute('aria-expanded', 'false');
+      if (settingsDirty) refresh();
+    }
+    syncInert();
   });
 
-  buildMenu();
-  if (session.poolSize() === 0) openMenu();
+  buildRail();
   buildKeys();
-  buildBars();
-  renderMeter();
+  syncInert();
+  renderStats();
   nextPrompt(true);
+  if (!prompt) openRail();
 })();

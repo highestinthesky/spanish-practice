@@ -14,6 +14,8 @@
     let served = 0;
     let right = 0;
     let total = 0;
+    let streak = 0;
+    let best = 0;
 
     const settings = () => store.state().settings;
 
@@ -127,10 +129,15 @@
         if (recent.length > 10) recent.shift();
         total += 1;
         if (ok) right += 1;
+        streak = ok ? streak + 1 : 0;
+        if (streak > best) best = streak;
         return { ok, result: r.result, marks: r.marks, expected: prompt.expected };
       },
       pendingRetries: () => retries.length,
       recent: () => recent.slice(),
+      streak: () => streak,
+      best: () => best,
+      count: () => total,
       accuracy: () => (total ? Math.round((100 * right) / total) : null),
     };
   }

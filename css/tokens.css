@@ -1,23 +1,35 @@
-/* Hallmark · Grid theme tokens. Every colour, font, space, ease and duration used by app.css lives here. */
+/* Hallmark · custom theme tokens (vibe: "warm paper workbench, indigo action, quick feedback").
+ * paper band: light · display: high-contrast-serif (Fraunces, roman) · accent hue: cool (indigo)
+ * Every colour, font, space, ease and duration used by app.css lives here. */
 :root {
-  /* paper band: light · display: grotesk-heavy · accent hue: signal red (warm) */
-  --color-paper: oklch(99% 0.003 255);
-  --color-paper-2: oklch(97.2% 0.003 255);
-  --color-paper-3: oklch(94.5% 0.004 255);
-  --color-rule: oklch(88% 0.006 255);
-  --color-neutral: oklch(60% 0.010 255);
-  --color-muted: oklch(42% 0.012 255);
-  --color-ink: oklch(16% 0.010 255);
-  --color-accent: oklch(55% 0.21 28);
-  --color-accent-ink: oklch(99% 0.003 255);
-  --color-accent-text: oklch(47% 0.19 28);
+  --color-paper: oklch(97.4% 0.008 85);
+  --color-paper-2: oklch(94.6% 0.012 85);
+  --color-paper-3: oklch(91.5% 0.014 85);
+  --color-surface: oklch(99.6% 0.003 85);
+  --color-rule: oklch(87.5% 0.014 85);
+  --color-dots: oklch(84% 0.016 85);
+  --color-neutral: oklch(62% 0.02 70);
+  --color-muted: oklch(45% 0.02 60);
+  --color-ink: oklch(21% 0.02 50);
+  --color-accent: oklch(50% 0.2 268);
+  --color-accent-ink: oklch(99% 0.004 268);
+  --color-accent-soft: oklch(93.5% 0.035 268);
+  --color-accent-text: oklch(46% 0.2 268);
+  --color-good: oklch(48% 0.13 155);
+  --color-good-soft: oklch(94% 0.045 155);
+  --color-bad: oklch(52% 0.19 25);
+  --color-bad-soft: oklch(94.5% 0.035 25);
+  --color-flame: oklch(66% 0.18 50);
   --color-focus: var(--color-accent);
-  --color-on-accent-rule: color-mix(in oklab, var(--color-accent-ink) 16%, transparent);
+  --color-scrim: oklch(21% 0.02 50 / 0.36);
+  --shadow-card: 0 1px 0 oklch(21% 0.02 50 / 0.04), 0 18px 40px -18px oklch(21% 0.02 50 / 0.22);
+  --shadow-side: 18px 0 40px -20px oklch(21% 0.02 50 / 0.3);
 
-  --font-display: "Archivo", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-body: var(--font-display);
-  --display-weight: 800;
-  --tracking-display: -0.045em;
+  --font-display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --display-weight: 600;
+  --tracking-display: -0.025em;
 
   --space-2xs: 4px;
   --space-xs: 8px;
@@ -26,39 +38,41 @@
   --space-lg: 24px;
   --space-xl: 32px;
   --space-2xl: 48px;
-  --space-3xl: 72px;
 
-  --text-label: 12px;
-  --text-body: 16px;
-  --text-input: 28px;
-  --text-person: clamp(20px, 3.2vw, 32px);
-  --text-display: clamp(52px, 18vw, 136px);
+  --text-micro: 11px;
+  --text-label: 13px;
+  --text-body: 15px;
+  --text-gloss: 16px;
+  --text-input: 26px;
+  --text-key: 20px;
+  --text-stat: 15px;
+  --text-person: 13px;
+  --text-display: clamp(48px, 11vw, 112px);
+  --text-right: clamp(32px, 7vw, 56px);
 
-  --radius-card: 0;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
   --rule-hair: 1px;
-  --rule-ink: 2px;
+  --rule-field: 2px;
 
-  --shell-max: 1280px;
+  --side-w: 300px;
+  --card-max: 680px;
+  --field-h: 64px;
   --gutter: 16px;
-  --grid-cols: 12;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in: cubic-bezier(0.64, 0, 0.78, 0);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --dur-fast: 120ms;
   --dur-base: 180ms;
-  --dur-slow: 240ms;
+  --dur-slow: 260ms;
 }
 
-@media (max-width: 700px) {
-  :root {
-    --grid-cols: 6;
-  }
-}
-
-/* Short viewports (landscape phones): size the display by height so the whole drill stays on one screen. */
 @media (max-height: 560px) {
   :root {
-    --text-display: clamp(36px, 18vh, 136px);
+    --text-display: clamp(36px, 15vh, 112px);
+    --field-h: 52px;
   }
 }
