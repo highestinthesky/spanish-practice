@@ -184,5 +184,16 @@
     v('luchar', 'to fight, to struggle', ['regular']),
     v('declarar', 'to declare', ['regular']),
     v('votar', 'to vote', ['regular']),
+
+    // Las diversiones: the chart's verbs that the lessons above do not already cover
+    v('festejar', 'to celebrate', ['regular']),
+    v('entretener', 'to amuse, to entertain', ['-go', 'e→ie']),
+    v('entretenerse', 'to amuse oneself', ['-go', 'e→ie']),
+    v('gustar', 'to like, to be pleasing', ['regular']),
+    v('anotar', 'to score (a goal, a point)', ['regular']),
+    v('marcar', 'to score (a goal, a point)', ['regular']),
+    v('desafiar', 'to challenge', ['í/ú']),
+    v('empatar', 'to tie (games)', ['regular']),
+    v('vencer', 'to defeat', ['spelling']),
   ]);
 })(typeof window !== 'undefined' ? window : globalThis);
