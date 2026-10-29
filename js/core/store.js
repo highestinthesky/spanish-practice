@@ -4,7 +4,7 @@
 
   const KEY = 'conjugacion.v1';
   const NEUTRAL_BOX = 2;
-  const BOOKS = ['all', 'D1', 'D2'];
+  const BOOKS = ['all', 'D1', 'D2', 'D3'];
 
   function defaults() {
     return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [] } };

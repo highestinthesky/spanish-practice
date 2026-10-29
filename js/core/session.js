@@ -24,7 +24,7 @@
     {
       const chips = settings().chips || [];
       if (chips.length) {
-        const books = chips.filter((c) => c === 'D1' || c === 'D2');
+        const books = chips.filter((c) => /^D\d$/.test(c));
         const types = chips.filter((c) => !books.includes(c));
         if (books.length === 1) store.setSetting('book', books[0]);
         if (types.length) store.setSetting('off', (D.TYPE_TAGS || []).filter((t) => !types.includes(t)));
@@ -49,7 +49,7 @@
     const activePool = () => poolFor();
     const allowed = (verb) => {
       const book = settings().book;
-      if ((book === 'D1' || book === 'D2') && !verb.tags.includes(book)) return false;
+      if (/^D\d$/.test(book) && !verb.tags.includes(book)) return false;
       return !verb.tags.some((t) => off().includes(t));
     };
 

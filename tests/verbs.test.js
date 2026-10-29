@@ -84,6 +84,7 @@ test('coverage: at least 300 verbs, most of Descubre 1 and 2, every chip has at 
   assert.ok(D.verbs.length >= 300, `only ${D.verbs.length} verbs`);
   assert.ok(D.verbs.filter((v) => v.tags.includes('D1')).length >= 140);
   assert.ok(D.verbs.filter((v) => v.tags.includes('D2')).length >= 120);
+  assert.ok(D.verbs.filter((v) => v.tags.includes('D3')).length >= 9);
   const tricky = D.verbs.filter((v) => !v.tags.includes('regular')).length;
   assert.ok(tricky >= 120, `only ${tricky} verbs irregular in the present`);
   for (const tag of D.TAGS) {

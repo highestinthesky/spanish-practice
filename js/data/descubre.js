@@ -3,7 +3,8 @@
   const D = (root.Drill = root.Drill || {});
 
   // Where each verb is taught in Descubre 1 and 2 (lesson vocabulary and grammar sections), reconstructed from the
-  // standard lesson themes. Verbs that appear in no lesson stay in the drill as extra practice without a D1/D2 tag.
+  // standard lesson themes, and in Descubre 3 from the lesson charts. Verbs that appear in no lesson stay in the drill
+  // as extra practice without a book tag.
   D.addLessons({
     'D1.1': ['ser'],
     'D1.2': [
@@ -64,5 +65,7 @@
       'anunciar', 'comunicarse', 'durar', 'informar', 'ocurrir', 'transmitir', 'emitir', 'investigar', 'luchar',
       'declarar', 'votar', 'elegir', 'obedecer',
     ],
+    // Las diversiones
+    'D3.2': ['festejar', 'entretener', 'entretenerse', 'gustar', 'anotar', 'marcar', 'desafiar', 'empatar', 'vencer'],
   });
 })(typeof window !== 'undefined' ? window : globalThis);

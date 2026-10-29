@@ -39,7 +39,7 @@
   // Row labels of the conjugation table.
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
-  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2' };
+  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
 
   function announce(text) {
     el.live.textContent = '';
@@ -165,7 +165,7 @@
 
   function buildRail() {
     const seg = node('div', 'seg');
-    for (const book of ['all', 'D1', 'D2']) {
+    for (const book of D.BOOKS) {
       const row = node('label', 'seg-opt');
       const input = node('input', 'opt-input');
       input.type = 'radio';

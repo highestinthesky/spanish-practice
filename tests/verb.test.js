@@ -33,7 +33,7 @@ test('v() copies its inputs', () => {
 });
 
 test('TAGS lists the chip order', () => {
-  assert.deepEqual(D.TAGS, ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular', 'D1', 'D2']);
+  assert.deepEqual(D.TAGS, ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular', 'D1', 'D2', 'D3']);
 });
 
 test('v() without forms leaves every tense to the conjugator', () => {

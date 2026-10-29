@@ -99,8 +99,8 @@ test('clear resets state and removes the stored key', () => {
   assert.equal(storage.data.has(D.STORE_KEY), false);
 });
 
-test('book setting: D1 and D2 are kept, anything else falls back to all', () => {
-  for (const [raw, want] of [['D1', 'D1'], ['D2', 'D2'], ['all', 'all'], ['D3', 'all'], [7, 'all']]) {
+test('book setting: D1, D2 and D3 are kept, anything else falls back to all', () => {
+  for (const [raw, want] of [['D1', 'D1'], ['D2', 'D2'], ['D3', 'D3'], ['all', 'all'], ['D4', 'all'], [7, 'all']]) {
     const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { book: raw } })));
     assert.equal(s.state().settings.book, want, String(raw));
   }
