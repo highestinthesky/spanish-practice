@@ -1,5 +1,14 @@
 [
   {
+    "date": "2026-10-30",
+    "macrostructure": "App Shell (custom)",
+    "theme": "custom",
+    "theme_axes": "light / high-contrast-serif / cool",
+    "vibe": "warm paper workbench, indigo action",
+    "enrichment": "ambient glyph field",
+    "brief": "Descubre 3 L2 test prep: mode tabs (vocab, pronombres, gustar, lectura, mezcla), choice and gap cards, reading view, richer GSAP motion"
+  },
+  {
     "date": "2026-10-26",
     "macrostructure": "App Shell (custom)",
     "theme": "custom",

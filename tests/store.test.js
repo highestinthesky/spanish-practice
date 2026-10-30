@@ -15,7 +15,7 @@ function fakeStorage(initial) {
 
 test('fresh store has defaults', () => {
   const s = D.createStore(() => fakeStorage());
-  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [] } });
+  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {} } });
 });
 
 test('the storage key is conjugacion.v1', () => {
@@ -87,7 +87,7 @@ test('sanitize drops bad items and bad settings but keeps good ones', () => {
   });
   const s = D.createStore(() => fakeStorage(raw));
   assert.deepEqual(Object.keys(s.state().items), ['good']);
-  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [] });
+  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {} });
 });
 
 test('clear resets state and removes the stored key', () => {
@@ -99,8 +99,8 @@ test('clear resets state and removes the stored key', () => {
   assert.equal(storage.data.has(D.STORE_KEY), false);
 });
 
-test('book setting: D1 and D2 are kept, anything else falls back to all', () => {
-  for (const [raw, want] of [['D1', 'D1'], ['D2', 'D2'], ['all', 'all'], ['D3', 'all'], [7, 'all']]) {
+test('book setting: D1, D2 and D3 are kept, anything else falls back to all', () => {
+  for (const [raw, want] of [['D1', 'D1'], ['D2', 'D2'], ['D3', 'D3'], ['all', 'all'], ['D4', 'all'], [7, 'all']]) {
     const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { book: raw } })));
     assert.equal(s.state().settings.book, want, String(raw));
   }
@@ -111,4 +111,27 @@ test('off setting: an array of type names, anything else becomes empty', () => {
     const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { off: raw } })));
     assert.deepEqual(s.state().settings.off, want, JSON.stringify(raw));
   }
+});
+
+test('mode and exercise filters persist; junk values fall back to defaults', () => {
+  const storage = fakeStorage();
+  const a = D.createStore(() => storage);
+  a.setSetting('mode', 'gustar');
+  a.setSetting('ex', { vocab: ['deportes'], pronombres: ['od', 7] });
+  const b = D.createStore(() => storage);
+  assert.equal(b.state().settings.mode, 'gustar');
+  assert.deepEqual(b.state().settings.ex, { vocab: ['deportes'], pronombres: ['od'] });
+  const junk = D.createStore(() => fakeStorage(JSON.stringify({ settings: { mode: 5, ex: [1, 2] } })));
+  assert.equal(junk.state().settings.mode, 'conjugar');
+  assert.deepEqual(junk.state().settings.ex, {});
+});
+
+test('reading scores persist; impossible ones are dropped', () => {
+  const storage = fakeStorage();
+  const a = D.createStore(() => storage);
+  a.setSetting('reading', 'final');
+  a.setSetting('scores', { final: { r: 5, t: 7 }, bad: { r: 9, t: 7 }, junk: 3 });
+  const b = D.createStore(() => storage);
+  assert.equal(b.state().settings.reading, 'final');
+  assert.deepEqual(b.state().settings.scores, { final: { r: 5, t: 7 } });
 });

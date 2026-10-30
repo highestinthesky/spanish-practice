@@ -22,6 +22,8 @@
   --color-flame: oklch(66% 0.18 50);
   --color-focus: var(--color-accent);
   --color-scrim: oklch(21% 0.02 50 / 0.36);
+  --color-glyph: oklch(89% 0.035 268);
+  --color-on-ink-muted: oklch(86% 0.012 85);
   --shadow-card: 0 1px 0 oklch(21% 0.02 50 / 0.04), 0 18px 40px -18px oklch(21% 0.02 50 / 0.22);
   --shadow-side: 18px 0 40px -20px oklch(21% 0.02 50 / 0.3);
 
@@ -49,6 +51,11 @@
   --text-person: 13px;
   --text-display: clamp(48px, 11vw, 112px);
   --text-right: clamp(32px, 7vw, 56px);
+  --text-tab: 14px;
+  --text-prompt: clamp(22px, 3.4vw, 34px);
+  --text-read: 17px;
+  --text-title: clamp(32px, 5vw, 56px);
+  --text-stamp: clamp(72px, 14vw, 140px);
 
   --radius-sm: 8px;
   --radius-md: 12px;

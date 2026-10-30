@@ -221,7 +221,7 @@ function bookSetup(saved) {
 }
 
 test('TYPE_TAGS are the chip tags without the books', () => {
-  assert.deepEqual(D.TYPE_TAGS, D.TAGS.filter((t) => t !== 'D1' && t !== 'D2'));
+  assert.deepEqual(D.TYPE_TAGS, D.TAGS.filter((t) => !/^D\d$/.test(t)));
 });
 
 test('setBook limits the pool to that book; counts follow the book', () => {

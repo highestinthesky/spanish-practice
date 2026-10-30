@@ -11,7 +11,7 @@ const tokens = fs.readFileSync(path.join(load.ROOT, 'css/tokens.css'), 'utf8');
 
 test('index.html loads scripts in the same order as the test loader, then the UI', () => {
   const srcs = [...html.matchAll(/<script src="([^"]+)"/g)].map((m) => m[1]).filter((src) => !/^https?:/.test(src));
-  assert.deepEqual(srcs, [...load.SCRIPT_ORDER, load.UI_SCRIPT]);
+  assert.deepEqual(srcs, [...load.SCRIPT_ORDER, ...load.UI_SCRIPTS]);
 });
 
 test('the animation library is pinned, integrity-checked and loads before the UI', () => {
@@ -20,7 +20,7 @@ test('the animation library is pinned, integrity-checked and loads before the UI
   assert.match(tag[1], /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/gsap\/\d+\.\d+\.\d+\/gsap\.min\.js$/);
   assert.match(tag[2], /integrity="sha384-[A-Za-z0-9+/=]+"/);
   assert.match(tag[2], /crossorigin="anonymous"/);
-  assert.ok(html.indexOf(tag[1]) < html.indexOf(load.UI_SCRIPT));
+  assert.ok(html.indexOf(tag[1]) < html.indexOf(load.UI_SCRIPTS[0]));
 });
 
 test('every script in the order list exists', () => {
@@ -29,7 +29,7 @@ test('every script in the order list exists', () => {
 
 test('no ES modules (they fail on file://)', () => {
   assert.ok(!/type="module"/.test(html));
-  for (const rel of [...load.SCRIPT_ORDER]) {
+  for (const rel of [...load.SCRIPT_ORDER, ...load.UI_SCRIPTS]) {
     const src = fs.readFileSync(path.join(load.ROOT, rel), 'utf8');
     assert.ok(!/^\s*(import|export)\s/m.test(src), `${rel} uses import/export`);
   }
@@ -38,7 +38,8 @@ test('no ES modules (they fail on file://)', () => {
 test('all ids the UI needs exist in the page', () => {
   for (const id of ['app', 'side', 'main', 'menu', 'close', 'scrim', 'book', 'types', 'vos', 'pool',
     'streak-box', 'streak', 'best', 'acc', 'count', 'stage', 'card', 'person', 'flag', 'verb', 'gloss',
-    'form', 'field', 'input', 'echo', 'submit', 'fix', 'right', 'next', 'keys', 'empty', 'burst', 'conj', 'live']) {
+    'form', 'field', 'input', 'echo', 'submit', 'fix', 'right', 'next', 'keys', 'empty', 'burst', 'conj', 'live',
+    'modes', 'modes-ink', 'ex-groups', 'ambient', 'hint', 'prompt', 'choices', 'why', 'read']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
 });
@@ -46,7 +47,7 @@ test('all ids the UI needs exist in the page', () => {
 test('the page has no prose: the only hard-coded words are the wordmark and the rail labels', () => {
   const body = html.slice(html.indexOf('<body>'), html.indexOf('<script'));
   const text = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  assert.equal(text, 'conjugar libro tipo de verbo vosotros');
+  assert.equal(text, 'repaso libro tipo de verbo vosotros');
 });
 
 test('the settings rail uses real form controls: a labelled drawer button, fieldsets, a vosotros switch', () => {

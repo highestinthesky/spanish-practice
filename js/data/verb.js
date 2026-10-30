@@ -2,8 +2,8 @@
   'use strict';
   const D = (root.Drill = root.Drill || {});
 
-  // Chip order on screen. Tags describe a verb's present-tense behaviour; D1 and D2 mark the Descubre book.
-  const TAGS = ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular', 'D1', 'D2'];
+  // Chip order on screen. Tags describe a verb's present-tense behaviour; D1, D2 and D3 mark the Descubre book.
+  const TAGS = ['e→ie', 'o→ue', 'e→i', '-go', '-zco', '-uir', 'í/ú', 'spelling', 'irregular', 'reflexive', 'regular', 'D1', 'D2', 'D3'];
 
   // present is optional: without it every tense comes from the conjugator.
   function v(inf, gloss, tags, present) {
@@ -100,7 +100,7 @@
   const book = createVerbBook(D.tenses);
   D.TAGS = TAGS;
   // The verb-type chips of the menu; the books have their own control.
-  D.TYPE_TAGS = TAGS.filter((t) => t !== 'D1' && t !== 'D2');
+  D.TYPE_TAGS = TAGS.filter((t) => !/^D\d$/.test(t));
 
   // How the menu names and groups the verb types. The example shows the change in one form.
   D.TYPE_GROUPS = [
