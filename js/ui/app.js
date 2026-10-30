@@ -6,40 +6,74 @@
 
   const ACCENT_KEYS = ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ'];
   const CORRECT_DELAY_MS = 320;
-  const CORRECT_DELAY_ANIMATED_MS = 560;
+  const CORRECT_DELAY_ANIMATED_MS = 620;
+  const CHOICE_DELAY_MS = 700;
   const MILESTONE = 5;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const narrow = window.matchMedia('(max-width: 860px)');
-  // Without GSAP (offline, blocked CDN) or with reduced motion, every state change is instant.
-  const animate = () => Boolean(G) && !reduceMotion.matches;
+  const motion = D.createMotion({ G, enabled: () => !reduceMotion.matches });
+  const animate = motion.on;
 
-  const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store: D.store });
+  const store = D.store;
+  const settings = () => store.state().settings;
+  const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store });
+  const decks = {};
+  const deckFor = (mode) =>
+    decks[mode] || (decks[mode] = D.createDeck({ items: () => D.L2.items(mode, settings()), store }));
 
   const el = {
     app: $('app'), side: $('side'), main: $('main'), menu: $('menu'), close: $('close'), scrim: $('scrim'),
-    book: $('book'), types: $('types'), vos: $('vos'), pool: $('pool'),
+    book: $('book'), types: $('types'), exGroups: $('ex-groups'), vos: $('vos'), pool: $('pool'),
+    modes: $('modes'), ink: $('modes-ink'), ambient: $('ambient'),
     streakBox: $('streak-box'), streak: $('streak'), best: $('best'), acc: $('acc'), count: $('count'),
-    stage: $('stage'), card: $('card'), person: $('person'), flag: $('flag'), verb: $('verb'), gloss: $('gloss'),
+    stage: $('stage'), card: $('card'), person: $('person'), hint: $('hint'), flag: $('flag'), verb: $('verb'),
+    prompt: $('prompt'), gloss: $('gloss'), choices: $('choices'),
     form: $('form'), field: $('field'), input: $('input'), echo: $('echo'), submit: $('submit'),
-    fix: $('fix'), right: $('right'), next: $('next'), keys: $('keys'), empty: $('empty'),
-    burst: $('burst'), conj: $('conj'), live: $('live'),
+    fix: $('fix'), right: $('right'), why: $('why'), next: $('next'), keys: $('keys'), empty: $('empty'),
+    burst: $('burst'), conj: $('conj'), read: $('read'), live: $('live'),
   };
 
+  const MODE_IDS = D.MODES.map((m) => m.id);
+  const MODE_NAMES = Object.fromEntries(D.MODES.map((m) => [m.id, m.name]));
+  const isExercise = (m) => m !== 'conjugar' && m !== 'lectura';
+
+  let appMode = MODE_IDS.includes(settings().mode) ? settings().mode : 'conjugar';
   let prompt = null;
   let mode = 'asking';
   let timer = 0;
   let wrongShownAt = 0;
   let settingsDirty = false;
 
-  // Long infinitives and long answers (nos divertimos) shrink so they never overflow.
-  const verbScale = (n) => (n <= 7 ? 1 : n <= 9 ? 0.86 : n <= 11 ? 0.72 : 0.6);
-  const answerScale = (n) => (n <= 10 ? 1 : n <= 14 ? 0.8 : 0.64);
+  const reading = D.createReading({
+    host: el.read,
+    motion,
+    store,
+    announce,
+    onAnswer(ok, from) {
+      renderStats(ok);
+      celebrate(ok, from);
+    },
+    onScores: () => syncRail(),
+  });
+  reading.setPicker((id) => {
+    store.setSetting('reading', id);
+    syncRail();
+    reading.mount(id);
+  });
+
+  const engine = () => (appMode === 'conjugar' ? session : appMode === 'lectura' ? reading : deckFor(appMode));
+
+  // Long words and answers shrink so they never overflow. English meanings can be a whole phrase.
+  const verbScale = (n) => (n <= 7 ? 1 : n <= 9 ? 0.86 : n <= 11 ? 0.72 : n <= 16 ? 0.56 : n <= 24 ? 0.42 : 0.32);
+  const answerScale = (n) => (n <= 10 ? 1 : n <= 14 ? 0.8 : n <= 22 ? 0.64 : 0.5);
 
   // Row labels of the conjugation table.
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
   const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
+  const GROUP_NAMES = Object.fromEntries(D.L2.VOCAB_GROUPS.map((g) => [g.id, g.name]));
+  const HINTS = { rewrite: 'reescribe', en: 'traduce' };
 
   function announce(text) {
     el.live.textContent = '';
@@ -58,92 +92,57 @@
     return n;
   }
 
+  // Letters grouped into words, so a phrase wraps between words and never inside one.
   function letters(target, text, marks) {
-    target.replaceChildren(...Array.from(text).map((ch, i) => node('span', marks && marks[i] ? 'ch miss' : 'ch', ch)));
+    const chars = [];
+    let i = 0;
+    const parts = [];
+    text.split(' ').forEach((word, w) => {
+      // A real element, not a text node: flex containers drop whitespace-only text.
+      if (w) {
+        parts.push(node('span', 'sp', ' '));
+        i += 1;
+      }
+      const box = node('span', 'w');
+      for (const ch of Array.from(word)) {
+        const c = node('span', marks && marks[i] ? 'ch miss' : 'ch', ch);
+        box.appendChild(c);
+        chars.push(c);
+        i += 1;
+      }
+      parts.push(box);
+    });
+    target.replaceChildren(...parts);
+    return chars;
+  }
+
+  // A sentence as word pieces, so it can fly in and out word by word. ___ becomes the gap, kept on one
+  // line with the letters touching it (ver___, ___:).
+  function sentence(target, text) {
+    const parts = text.split(/(\s+)/).filter(Boolean).map((w) => {
+      if (/^\s+$/.test(w)) return document.createTextNode(' ');
+      if (!w.includes('___')) return node('span', 'ch', w);
+      const word = node('span', 'ch');
+      const [before, after] = w.split('___');
+      const gap = node('span', 'gap');
+      gap.setAttribute('aria-label', 'espacio');
+      if (before) word.appendChild(document.createTextNode(before));
+      word.appendChild(gap);
+      if (after) word.appendChild(document.createTextNode(after));
+      return word;
+    });
+    target.replaceChildren(...parts);
     return Array.from(target.children);
   }
 
-  /* ---------- motion ---------- */
-
-  function enterLetters(chars, delay = 0) {
-    G.fromTo(
-      chars,
-      { y: '0.55em', rotationX: -85, opacity: 0 },
-      { y: 0, rotationX: 0, opacity: 1, duration: 0.5, ease: 'back.out(1.8)', stagger: 0.032, delay, clearProps: 'transform,opacity' }
-    );
-  }
-
-  // Letters drift apart from the middle and slide away.
-  function scatterLetters(chars, done) {
-    const mid = (chars.length - 1) / 2;
-    G.to(chars, {
-      x: (i) => (i - mid) * 16 + G.utils.random(-8, 8),
-      y: () => G.utils.random(-80, -36),
-      rotation: () => G.utils.random(-40, 40),
-      opacity: 0,
-      duration: 0.4,
-      ease: 'power2.in',
-      stagger: { each: 0.014, from: 'center' },
-      onComplete: done,
-    });
-  }
-
-  // A detached copy of the old text flies out while the new text is already usable.
-  function ghost(source) {
-    if (!source.textContent.trim() || !source.getClientRects().length) return;
-    const host = el.card.getBoundingClientRect();
-    const r = source.getBoundingClientRect();
-    const g = source.cloneNode(true);
-    g.removeAttribute('id');
-    g.setAttribute('aria-hidden', 'true');
-    g.classList.add('ghost');
-    Object.assign(g.style, {
-      left: `${r.left - host.left}px`,
-      top: `${r.top - host.top}px`,
-      width: `${r.width}px`,
-      height: `${r.height}px`,
-      color: getComputedStyle(source).color,
-    });
-    el.card.appendChild(g);
-    scatterLetters(Array.from(g.querySelectorAll('.ch')), () => g.remove());
-  }
-
-  function burst(n) {
-    const stage = el.stage.getBoundingClientRect();
-    const from = el.submit.getBoundingClientRect();
-    const cx = from.left + from.width / 2 - stage.left;
-    const cy = from.top + from.height / 2 - stage.top;
-    for (let i = 0; i < n; i += 1) {
-      const s = node('span', `spark spark-${i % 3}`);
-      s.style.left = `${cx}px`;
-      s.style.top = `${cy}px`;
-      el.burst.appendChild(s);
-      const a = Math.random() * Math.PI * 2;
-      const d = 36 + Math.random() * (n > 12 ? 170 : 90);
-      G.fromTo(
-        s,
-        { x: -4, y: -4, scale: 1, rotation: 0, opacity: 1 },
-        {
-          x: Math.cos(a) * d,
-          y: Math.sin(a) * d - 24,
-          rotation: G.utils.random(-200, 200),
-          scale: 0.3,
-          opacity: 0,
-          duration: 0.55 + Math.random() * 0.35,
-          ease: 'power3.out',
-          onComplete: () => s.remove(),
-        }
-      );
-    }
-  }
-
-  function pop(target, scale = 1.18) {
-    G.fromTo(target, { scale: 1 }, { scale, duration: 0.14, yoyo: true, repeat: 1, ease: 'power2.out', clearProps: 'transform' });
-  }
-
-  function shake(target, dist = 12) {
-    const k = [0, -dist, dist * 0.8, -dist * 0.55, dist * 0.3, 0];
-    G.fromTo(target, { x: 0 }, { keyframes: { x: k }, duration: 0.42, ease: 'none', clearProps: 'transform' });
+  function celebrate(ok, from) {
+    const streak = engine().streak();
+    if (!ok) return;
+    const milestone = streak > 0 && streak % MILESTONE === 0;
+    motion.burst(el.burst, from, milestone ? 30 : 10);
+    motion.ripple(el.burst, from);
+    motion.gust(milestone);
+    if (milestone) motion.stamp(el.burst, `×${streak}`);
   }
 
   /* ---------- side rail ---------- */
@@ -155,7 +154,7 @@
     input.type = type;
     if (name) input.name = name;
     input.value = value;
-    const box = node('span', 'opt-box');
+    const box = node('span', type === 'radio' ? 'opt-box opt-radio' : 'opt-box');
     box.setAttribute('aria-hidden', 'true');
     row.append(input, box, node('span', 'opt-name', label));
     if (example) row.appendChild(node('span', 'opt-ex', example));
@@ -200,7 +199,55 @@
     }
 
     el.vos.addEventListener('change', () => changed(() => session.setVosotros(el.vos.checked)));
-    syncRail();
+  }
+
+  function exOff(mode) {
+    return (settings().ex || {})[mode] || [];
+  }
+
+  function toggleEx(mode, id) {
+    const ex = { ...(settings().ex || {}) };
+    const set = new Set(ex[mode] || []);
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    ex[mode] = Array.from(set);
+    store.setSetting('ex', ex);
+  }
+
+  // The settings of the active mode: filter checkboxes for exercises, the list of passages for lectura.
+  function buildModeRail() {
+    const parts = [];
+    const modes = appMode === 'mezcla' ? ['vocab', 'pronombres', 'gustar'] : isExercise(appMode) ? [appMode] : [];
+    for (const m of modes) {
+      for (const group of D.L2.filters(m)) {
+        const set = node('fieldset', 'group');
+        set.appendChild(node('legend', 'group-h', appMode === 'mezcla' ? `${MODE_NAMES[m]} · ${group.name}` : group.name));
+        for (const f of group.items) {
+          const row = option({ type: 'checkbox', value: f.id, label: f.name, example: f.example });
+          const input = row.querySelector('input');
+          input.dataset.mode = m;
+          input.addEventListener('change', () => changed(() => toggleEx(m, f.id)));
+          set.appendChild(row);
+        }
+        parts.push(set);
+      }
+    }
+    if (appMode === 'lectura') {
+      const set = node('fieldset', 'group');
+      set.appendChild(node('legend', 'group-h', 'lectura'));
+      for (const r of D.L2.readings) {
+        const row = option({ type: 'radio', name: 'reading', value: r.id, label: r.title, example: r.tag });
+        row.querySelector('input').addEventListener('change', () => {
+          store.setSetting('reading', r.id);
+          syncRail();
+          reading.mount(r.id);
+          if (drawerOpen()) closeRail();
+        });
+        set.appendChild(row);
+      }
+      parts.push(set);
+    }
+    el.exGroups.replaceChildren(...parts);
   }
 
   // On a wide screen a change takes effect at once; inside the drawer it waits until the drawer closes.
@@ -213,33 +260,58 @@
 
   function refresh() {
     settingsDirty = false;
+    if (appMode === 'lectura') return;
     if (mode !== 'correct') nextPrompt(false);
+  }
+
+  function poolText(n, one, many) {
+    el.pool.replaceChildren(node('span', 'pool-n', String(n)), node('span', null, n === 1 ? one : many));
+    el.pool.toggleAttribute('data-empty', n === 0);
+    el.empty.textContent = `0 ${many}`;
   }
 
   // Inputs and counts always mirror the stored settings.
   function syncRail() {
-    const st = session.settings();
-    for (const input of el.book.querySelectorAll('input')) {
-      input.checked = input.value === st.book;
-      input.closest('.seg-opt').querySelector('.seg-n').textContent = String(session.bookCount(input.value));
-    }
-    for (const input of el.types.querySelectorAll('input')) {
-      if (!input.value) {
-        input.checked = st.off.length === 0;
-        input.closest('.all').querySelector('.all-n').textContent = String(session.bookCount(st.book));
-        continue;
+    const st = settings();
+    el.vos.checked = st.vosotros;
+    if (appMode === 'conjugar') {
+      for (const input of el.book.querySelectorAll('input')) {
+        input.checked = input.value === st.book;
+        input.closest('.seg-opt').querySelector('.seg-n').textContent = String(session.bookCount(input.value));
       }
-      const n = session.countFor(input.value);
-      input.checked = session.typeOn(input.value);
+      for (const input of el.types.querySelectorAll('input')) {
+        if (!input.value) {
+          input.checked = st.off.length === 0;
+          input.closest('.all').querySelector('.all-n').textContent = String(session.bookCount(st.book));
+          continue;
+        }
+        const n = session.countFor(input.value);
+        input.checked = session.typeOn(input.value);
+        input.disabled = n === 0;
+        input.closest('.opt').querySelector('.opt-count').textContent = String(n);
+      }
+      poolText(session.poolSize(), 'verbo', 'verbos');
+      return;
+    }
+    if (appMode === 'lectura') {
+      const sc = reading.scores();
+      const current = st.reading || D.L2.readings[0].id;
+      for (const input of el.exGroups.querySelectorAll('input')) {
+        input.checked = input.value === current;
+        const s = sc[input.value];
+        input.closest('.opt').querySelector('.opt-count').textContent = s ? `${s.r}/${s.t}` : '–';
+      }
+      poolText(D.L2.readings.length, 'lectura', 'lecturas');
+      return;
+    }
+    for (const input of el.exGroups.querySelectorAll('input')) {
+      const m = input.dataset.mode;
+      input.checked = !exOff(m).includes(input.value);
+      const n = D.L2.count(m, input.value, st);
       input.disabled = n === 0;
       input.closest('.opt').querySelector('.opt-count').textContent = String(n);
     }
-    el.vos.checked = st.vosotros;
-    const n = session.poolSize();
-    const words = n === 1 ? 'verbo' : 'verbos';
-    el.pool.replaceChildren(node('span', 'pool-n', String(n)), node('span', null, words));
-    el.pool.toggleAttribute('data-empty', n === 0);
-    el.empty.textContent = `0 ${words}`;
+    poolText(D.L2.items(appMode, st).length, 'ejercicio', 'ejercicios');
   }
 
   /* ---------- drawer (narrow screens) ---------- */
@@ -253,15 +325,15 @@
 
   function openRail() {
     if (!narrow.matches) {
-      const first = el.types.querySelector('.opt-input:not(:disabled)');
-      if (first) first.focus();
+      const first = el.side.querySelector('.group:not([hidden]) .opt-input:not(:disabled)');
+      if (first && first.offsetParent) first.focus();
       return;
     }
     el.app.dataset.drawer = 'open';
     el.menu.setAttribute('aria-expanded', 'true');
     syncInert();
-    const first = el.book.querySelector('.opt-input:checked');
-    if (first) first.focus({ preventScroll: true });
+    const first = el.side.querySelector('.opt-input:checked');
+    if (first && first.offsetParent) first.focus({ preventScroll: true });
   }
 
   function closeRail() {
@@ -270,9 +342,83 @@
     el.menu.setAttribute('aria-expanded', 'false');
     syncInert();
     if (settingsDirty) refresh();
-    if (mode === 'asking') el.input.focus({ preventScroll: true });
-    else if (mode === 'empty') el.empty.focus({ preventScroll: true });
-    else el.menu.focus({ preventScroll: true });
+    focusAnswer() || el.menu.focus({ preventScroll: true });
+  }
+
+  /* ---------- tabs ---------- */
+
+  function buildTabs() {
+    for (const m of D.MODES) {
+      const b = node('button', 'mode', m.name);
+      b.type = 'button';
+      b.id = `tab-${m.id}`;
+      b.dataset.mode = m.id;
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-controls', m.id === 'lectura' ? 'read' : 'stage');
+      b.addEventListener('click', () => switchMode(m.id, true));
+      b.addEventListener('keydown', (e) => {
+        const i = MODE_IDS.indexOf(m.id);
+        let to = null;
+        if (e.key === 'ArrowRight') to = MODE_IDS[(i + 1) % MODE_IDS.length];
+        if (e.key === 'ArrowLeft') to = MODE_IDS[(i - 1 + MODE_IDS.length) % MODE_IDS.length];
+        if (e.key === 'Home') to = MODE_IDS[0];
+        if (e.key === 'End') to = MODE_IDS[MODE_IDS.length - 1];
+        if (!to) return;
+        e.preventDefault();
+        switchMode(to, false);
+        $(`tab-${to}`).focus();
+      });
+      el.modes.appendChild(b);
+    }
+  }
+
+  function syncTabs(instant) {
+    for (const b of el.modes.querySelectorAll('.mode')) {
+      const on = b.dataset.mode === appMode;
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+      if (on) {
+        motion.ink(el.ink, b, instant);
+        // Keep the chosen tab in view when the strip scrolls on a phone.
+        const strip = el.modes;
+        if (b.offsetLeft < strip.scrollLeft || b.offsetLeft + b.offsetWidth > strip.scrollLeft + strip.clientWidth) {
+          strip.scrollTo({ left: b.offsetLeft - 16, behavior: instant || !animate() ? 'auto' : 'smooth' });
+        }
+      }
+    }
+  }
+
+  function switchMode(next, focusContent) {
+    if (next === appMode) {
+      if (focusContent) focusAnswer();
+      return;
+    }
+    clearTimeout(timer);
+    appMode = next;
+    store.setSetting('mode', next);
+    applyMode(false, focusContent);
+  }
+
+  function applyMode(first, focusContent) {
+    el.app.dataset.mode = appMode;
+    const lectura = appMode === 'lectura';
+    el.stage.hidden = lectura;
+    el.read.hidden = !lectura;
+    el.stage.setAttribute('aria-labelledby', `tab-${appMode}`);
+    el.read.setAttribute('aria-labelledby', 'tab-lectura');
+    syncTabs(first);
+    buildModeRail();
+    syncRail();
+    renderStats();
+    if (lectura) {
+      prompt = null;
+      hideTable();
+      reading.mount(settings().reading || D.L2.readings[0].id);
+      return;
+    }
+    prompt = null;
+    nextPrompt(Boolean(focusContent));
+    if (!first) motion.swap(el.card);
   }
 
   /* ---------- answer area ---------- */
@@ -297,18 +443,37 @@
     }
   }
 
+  function focusAnswer() {
+    if (appMode === 'lectura') return false;
+    if (mode === 'asking' && el.stage.dataset.kind === 'choice') {
+      const b = el.choices.querySelector('.choice');
+      if (b) b.focus({ preventScroll: true });
+      return Boolean(b);
+    }
+    if (mode === 'asking') {
+      el.input.focus({ preventScroll: true });
+      return true;
+    }
+    if (mode === 'empty') {
+      el.empty.focus({ preventScroll: true });
+      return true;
+    }
+    return false;
+  }
+
   function renderStats(ok) {
-    const streak = session.streak();
-    const best = session.best();
-    const acc = session.accuracy();
+    const e = engine();
+    const streak = e.streak();
+    const best = e.best();
+    const acc = e.accuracy();
     el.streak.textContent = String(streak);
     el.best.hidden = best <= streak;
     el.best.textContent = String(best);
     el.acc.textContent = acc === null ? '' : String(acc);
-    el.count.textContent = String(session.count());
-    if (ok === undefined || !animate()) return;
-    if (ok) pop(el.streakBox, streak % MILESTONE === 0 ? 1.32 : 1.16);
-    else shake(el.streakBox, 5);
+    el.count.textContent = String(e.count());
+    if (ok === undefined) return;
+    if (ok) motion.pop(el.streakBox, streak % MILESTONE === 0 ? 1.32 : 1.16);
+    else motion.shake(el.streakBox, 5);
   }
 
   /* ---------- conjugation table (shown on a miss) ---------- */
@@ -320,7 +485,7 @@
     if (current >= 0) card.dataset.current = '';
     card.appendChild(node('h2', 'label', title));
     const list = node('dl', 'rows');
-    const vos = session.settings().vosotros;
+    const vos = settings().vosotros;
     forms.forEach((f, i) => {
       if (!vos && i === 4) return;
       const row = node('div', i === current ? 'row cur' : 'row');
@@ -338,7 +503,7 @@
     const card = node('section', 'tcard tcard-wide');
     card.appendChild(node('h2', 'label', 'imperativo'));
     const list = node('dl', 'rows');
-    const vos = session.settings().vosotros;
+    const vos = settings().vosotros;
     for (let i = 1; i < 6; i += 1) {
       if (!vos && i === 4) continue;
       const row = node('div', 'row');
@@ -385,8 +550,8 @@
     el.conj.setAttribute('aria-label', `conjugación de ${p.verb.inf}`);
     el.conj.hidden = false;
     if (animate()) {
-      G.fromTo(head, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, delay: 0.25, ease: 'power3.out', clearProps: 'transform,opacity' });
-      G.fromTo(grid.children, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.3, stagger: 0.04, ease: 'power3.out', clearProps: 'transform,opacity' });
+      motion.rise(head, 0.25);
+      G.fromTo(grid.children, { opacity: 0, y: 24, rotation: (i) => (i % 2 ? 2 : -2) }, { opacity: 1, y: 0, rotation: 0, duration: 0.4, delay: 0.3, stagger: 0.04, ease: 'power3.out', clearProps: 'transform,opacity' });
     }
   }
 
@@ -400,53 +565,157 @@
   /* ---------- flow ---------- */
 
   function showEmpty() {
-    if (prompt && animate()) ghost(el.verb);
+    if (prompt) {
+      motion.ghost(el.verb, el.card);
+      motion.ghost(el.prompt, el.card);
+    }
     prompt = null;
     setMode('empty');
     el.fix.hidden = true;
     el.empty.hidden = false;
+    el.choices.replaceChildren();
     hideTable();
+  }
+
+  // Old words leave in one of several ways while the new ones arrive.
+  function leave() {
+    if (!prompt || !animate()) return;
+    motion.ghost(el.verb, el.card);
+    motion.ghost(el.prompt, el.card);
+    if (mode === 'correct') motion.ghost(el.echo, el.card);
+    if (mode === 'wrong') motion.ghost(el.right, el.card);
+  }
+
+  function resetCard() {
+    setMode('asking');
+    el.empty.hidden = true;
+    el.fix.hidden = true;
+    el.why.textContent = '';
+    el.echo.replaceChildren();
+    el.submit.dataset.mark = 'arrow';
+    el.input.readOnly = false;
+    el.input.value = '';
+    el.choices.replaceChildren();
+    hideTable();
+  }
+
+  function flag(p) {
+    // A form missed before comes back flagged: "repaso" when it is the in-session retry, "fallado" from an earlier session.
+    const misses = p.missed || (p.retry ? 1 : 0);
+    el.flag.hidden = !(p.retry || p.missed);
+    el.flag.textContent = el.flag.hidden ? '' : `${p.retry ? 'repaso' : 'fallado'} ×${misses}`;
   }
 
   function nextPrompt(focusInput = true) {
     clearTimeout(timer);
-    if (prompt && animate()) {
-      ghost(el.verb);
-      if (mode === 'correct') ghost(el.echo);
-      if (mode === 'wrong') ghost(el.right);
-    }
+    leave();
+    if (appMode === 'conjugar') nextDrill();
+    else nextExercise();
+    if (focusInput && prompt) focusAnswer();
+  }
+
+  function nextDrill() {
     const p = session.next();
     if (!p) {
       showEmpty();
       return;
     }
     prompt = p;
-    setMode('asking');
-    el.empty.hidden = true;
-    el.fix.hidden = true;
-    el.echo.replaceChildren();
-    el.submit.dataset.mark = 'arrow';
-    el.input.readOnly = false;
-    el.input.value = '';
-    hideTable();
+    resetCard();
+    el.stage.dataset.kind = 'drill';
+    el.stage.dataset.show = 'big';
+    flag(p);
+    el.hint.hidden = true;
+    el.prompt.replaceChildren();
 
-    // A form missed before comes back flagged: "repaso" when it is the in-session retry, "fallado" from an earlier session.
-    const misses = prompt.missed || (prompt.retry ? 1 : 0);
-    el.flag.hidden = !(prompt.retry || prompt.missed);
-    el.flag.textContent = el.flag.hidden ? '' : `${prompt.retry ? 'repaso' : 'fallado'} ×${misses}`;
+    const chars = letters(el.verb, p.verb.inf);
+    el.verb.lang = 'es';
+    el.verb.setAttribute('aria-label', p.verb.inf);
+    el.verb.style.setProperty('--verb-scale', String(verbScale(p.verb.inf.length)));
+    el.gloss.textContent = p.verb.gloss;
+    el.person.textContent = p.personLabel;
 
-    const chars = letters(el.verb, prompt.verb.inf);
-    el.verb.setAttribute('aria-label', prompt.verb.inf);
-    el.verb.style.setProperty('--verb-scale', String(verbScale(prompt.verb.inf.length)));
-    el.gloss.textContent = prompt.verb.gloss;
-    el.person.textContent = prompt.personLabel;
+    motion.enter(chars, 0.1);
+    intro();
+  }
 
-    if (animate()) {
-      enterLetters(chars, 0.1);
-      G.fromTo([el.person, el.flag], { opacity: 0, y: 8, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.06, ease: 'back.out(2)', clearProps: 'transform,opacity' });
-      G.fromTo(el.gloss, { opacity: 0 }, { opacity: 1, duration: 0.4, delay: 0.25, clearProps: 'opacity' });
+  function intro() {
+    if (!animate()) return;
+    G.fromTo([el.person, el.hint, el.flag], { opacity: 0, y: 8, scale: 0.85 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, stagger: 0.06, ease: 'back.out(2)', clearProps: 'transform,opacity' });
+    G.fromTo(el.gloss, { opacity: 0 }, { opacity: 1, duration: 0.4, delay: 0.25, clearProps: 'opacity' });
+  }
+
+  function nextExercise() {
+    const deck = deckFor(appMode);
+    const p = deck.next();
+    if (!p) {
+      showEmpty();
+      return;
     }
-    if (focusInput) el.input.focus({ preventScroll: true });
+    prompt = p;
+    resetCard();
+    const it = p.item;
+    el.stage.dataset.kind = it.options ? 'choice' : 'type';
+    el.stage.dataset.show = it.big ? 'big' : 'sentence';
+    flag(p);
+
+    const skill = D.L2.skillName(it);
+    el.person.textContent = appMode === 'mezcla' ? `${MODE_NAMES[it.mode]} · ${skill}` : skill;
+    const hint = HINTS[it.form];
+    el.hint.hidden = !hint;
+    el.hint.textContent = hint || '';
+
+    let chars = [];
+    if (it.big) {
+      chars = letters(el.verb, it.big);
+      el.verb.lang = it.lang || 'es';
+      el.verb.setAttribute('aria-label', it.big);
+      // A phrase wraps between words, so it is sized by its longest word or half its length, whichever is more.
+      const words = it.big.split(' ');
+      const span = words.length > 1 ? Math.max(...words.map((x) => x.length), Math.ceil(it.big.length / 2)) : it.big.length;
+      el.verb.style.setProperty('--verb-scale', String(verbScale(span)));
+      el.prompt.replaceChildren();
+      el.gloss.textContent = it.group ? GROUP_NAMES[it.group] : '';
+    } else {
+      el.verb.replaceChildren();
+      el.verb.removeAttribute('aria-label');
+      chars = sentence(el.prompt, it.prompt);
+      el.prompt.lang = it.lang || 'es';
+      el.prompt.setAttribute('aria-label', it.prompt.replace('___', '…'));
+      el.gloss.textContent = '';
+    }
+
+    if (it.options) {
+      const buttons = it.options.map((opt, i) => {
+        const b = node('button', 'choice');
+        b.type = 'button';
+        b.lang = it.skill === 'es-en' || it.skill === 'significado' ? 'en' : 'es';
+        b.append(node('span', 'choice-key', String(i + 1)), node('span', 'choice-text', opt));
+        b.addEventListener('click', () => onChoice(i));
+        return b;
+      });
+      el.choices.replaceChildren(...buttons);
+      el.choices.setAttribute('aria-label', it.big || it.prompt);
+      motion.choicesIn(buttons, 0.18);
+    }
+
+    motion.enter(chars, 0.08);
+    intro();
+  }
+
+  /* ---------- answers ---------- */
+
+  function fillGap(text, tone) {
+    const gap = el.prompt.querySelector('.gap');
+    if (!gap) return [];
+    gap.dataset.tone = tone;
+    const chars = letters(gap, text);
+    if (animate()) G.fromTo(chars, { y: -18, opacity: 0, scale: 0.6 }, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(2.4)', stagger: 0.025, clearProps: 'transform,opacity' });
+    return chars;
+  }
+
+  function scheduleNext(ms) {
+    timer = setTimeout(() => nextPrompt(true), animate() ? ms : CORRECT_DELAY_MS);
   }
 
   function showCorrect(res) {
@@ -454,39 +723,67 @@
     el.submit.dataset.mark = 'tick';
     el.input.readOnly = true;
     announce('correcto');
-    const chars = letters(el.echo, D.normalize.norm(res.expected));
+    const shown = appMode === 'conjugar' ? D.normalize.norm(res.expected) : D.exercise.norm(el.input.value);
+    const chars = letters(el.echo, shown);
+    if (appMode !== 'conjugar') fillGap(res.expected, 'good');
     if (animate()) {
-      G.to(chars, { keyframes: { y: [0, -14, 0], scale: [1, 1.22, 1] }, duration: 0.42, ease: 'power1.inOut', stagger: 0.035 });
-      G.to(el.verb.children, { keyframes: { y: [0, -8, 0] }, duration: 0.36, ease: 'power1.inOut', stagger: 0.025, clearProps: 'transform' });
-      pop(el.submit, 1.12);
-      burst(session.streak() % MILESTONE === 0 ? 28 : 10);
+      motion.balloons(chars, el.card);
+      G.to(el.verb.querySelectorAll('.ch'), { keyframes: { y: [0, -8, 0] }, duration: 0.36, ease: 'power1.inOut', stagger: 0.025, clearProps: 'transform' });
+      motion.pop(el.submit, 1.12);
     }
-    timer = setTimeout(() => nextPrompt(true), animate() ? CORRECT_DELAY_ANIMATED_MS : CORRECT_DELAY_MS);
+    celebrate(true, el.submit);
+    scheduleNext(CORRECT_DELAY_ANIMATED_MS);
   }
 
-  function showWrong(res) {
+  function showWrong(res, why) {
     setMode('wrong');
     el.input.readOnly = true;
     el.fix.hidden = false;
-    const chars = letters(el.right, D.normalize.norm(res.expected), res.marks);
+    const chars = letters(el.right, D.exercise.norm(res.expected), res.marks);
     el.right.style.setProperty('--right-scale', String(answerScale(chars.length)));
-    renderTable(prompt);
+    const note = res.result === 'accent' ? ['acento', why].filter(Boolean).join(' · ') : why || '';
+    el.why.textContent = note;
+    if (appMode === 'conjugar') renderTable(prompt);
+    else fillGap(res.expected, 'bad');
     wrongShownAt = Date.now();
-    announce(`incorrecto: ${res.expected}`);
+    announce(`incorrecto: ${res.expected}${note ? `. ${note}` : ''}`);
     if (!animate()) return;
-    shake(el.card);
+    motion.shake(el.card);
     G.fromTo(el.fix, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.28, ease: 'power3.out', clearProps: 'transform,opacity' });
-    // The missed letters pulse only once the whole word has landed, so the two never fight over a letter.
-    const tl = G.timeline({ delay: 0.08 });
-    tl.fromTo(
-      chars,
-      { opacity: 0, y: -22, rotation: -10 },
-      { opacity: 1, y: 0, rotation: 0, duration: 0.42, ease: 'back.out(2.2)', stagger: 0.035, clearProps: 'transform,opacity' }
-    );
-    const misses = chars.filter((c) => c.classList.contains('miss'));
-    if (misses.length) {
-      tl.to(misses, { keyframes: { scale: [1, 1.3, 1] }, duration: 0.32, ease: 'power2.out', stagger: 0.05, clearProps: 'transform' });
+    motion.correction(chars);
+  }
+
+  function onChoice(i) {
+    if (!prompt || mode !== 'asking' || appMode === 'conjugar') return;
+    const it = prompt.item;
+    const res = deckFor(appMode).answer(prompt, i);
+    renderStats(res.ok);
+    const buttons = Array.from(el.choices.children);
+    buttons.forEach((b, j) => {
+      b.disabled = true;
+      if (j === it.correct) b.dataset.state = 'right';
+      else if (j === i) b.dataset.state = 'wrong';
+    });
+    motion.choicesSettle(buttons, buttons[it.correct], buttons[i]);
+    fillGap(res.expected, res.ok ? 'good' : 'bad');
+    if (res.ok) {
+      setMode('correct');
+      announce('correcto');
+      celebrate(true, buttons[i]);
+      scheduleNext(CHOICE_DELAY_MS + 250);
+      return;
     }
+    setMode('wrong');
+    el.fix.hidden = false;
+    const chars = letters(el.right, res.expected);
+    el.right.style.setProperty('--right-scale', String(answerScale(chars.length)));
+    el.why.textContent = it.why || '';
+    wrongShownAt = Date.now();
+    announce(`incorrecto: ${res.expected}${it.why ? `. ${it.why}` : ''}`);
+    el.next.focus({ preventScroll: true });
+    if (!animate()) return;
+    G.fromTo(el.fix, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.28, ease: 'power3.out', delay: 0.15, clearProps: 'transform,opacity' });
+    motion.correction(chars);
   }
 
   function onSubmit(repeat = false) {
@@ -496,15 +793,16 @@
       nextPrompt(true);
       return;
     }
+    if (el.stage.dataset.kind === 'choice') return;
     const typed = el.input.value;
     if (!typed.trim()) {
-      if (animate()) shake(el.field, 4);
+      motion.shake(el.field, 4);
       return;
     }
-    const res = session.answer(prompt, typed);
+    const res = appMode === 'conjugar' ? session.answer(prompt, typed) : deckFor(appMode).answer(prompt, typed);
     renderStats(res.ok);
     if (res.ok) showCorrect(res);
-    else showWrong(res);
+    else showWrong(res, prompt.item ? prompt.item.why : '');
   }
 
   /* ---------- events ---------- */
@@ -528,7 +826,24 @@
   el.close.addEventListener('click', closeRail);
   el.scrim.addEventListener('click', closeRail);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && drawerOpen()) closeRail();
+    if (e.key === 'Escape' && drawerOpen()) {
+      closeRail();
+      return;
+    }
+    if (drawerOpen() || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (appMode === 'lectura') {
+      if (reading.key(e)) e.preventDefault();
+      return;
+    }
+    if (e.target === el.input) return;
+    // Choices: 1–4 pick an option; Enter moves on after a miss.
+    if (el.stage.dataset.kind === 'choice' && mode === 'asking' && /^[1-4]$/.test(e.key)) {
+      const n = Number(e.key) - 1;
+      if (prompt && prompt.item && n < prompt.item.options.length) {
+        e.preventDefault();
+        onChoice(n);
+      }
+    }
   });
   narrow.addEventListener('change', () => {
     if (!narrow.matches && drawerOpen()) {
@@ -538,11 +853,18 @@
     }
     syncInert();
   });
+  window.addEventListener('resize', () => syncTabs(true));
+  reduceMotion.addEventListener('change', () => {
+    if (reduceMotion.matches) motion.stopAmbient();
+    else motion.ambient(el.ambient);
+  });
 
+  buildTabs();
   buildRail();
   buildKeys();
   syncInert();
-  renderStats();
-  nextPrompt(true);
-  if (!prompt) openRail();
+  applyMode(true, true);
+  motion.ambient(el.ambient);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => syncTabs(true));
+  if (appMode !== 'lectura' && !prompt) openRail();
 })();

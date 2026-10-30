@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light">
-  <title>conjugar</title>
+  <title>repaso · Descubre 3</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500..700&family=Geist:wght@400..700&family=Geist+Mono:wght@500;600&display=swap">
@@ -15,7 +15,7 @@
   <div class="app" id="app" data-drawer="closed">
     <aside class="side" id="side" aria-label="ajustes">
       <div class="side-head">
-        <span class="brand" aria-hidden="true">conjugar<span class="brand-dot"></span></span>
+        <span class="brand" aria-hidden="true">repaso<span class="brand-dot"></span></span>
         <button class="close" id="close" type="button" aria-label="cerrar"></button>
       </div>
 
@@ -26,6 +26,8 @@
       <fieldset class="group group-grow" id="types">
         <legend class="group-h">tipo de verbo</legend>
       </fieldset>
+
+      <div class="ex-groups" id="ex-groups"></div>
 
       <div class="side-foot">
         <label class="switch">
@@ -44,6 +46,9 @@
         <button class="menu" id="menu" type="button" aria-label="ajustes" aria-controls="side" aria-expanded="false">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
         </button>
+        <div class="modes" id="modes" role="tablist" aria-label="modo">
+          <span class="modes-ink" id="modes-ink" aria-hidden="true"></span>
+        </div>
         <div class="stats">
           <div class="stat stat-streak" id="streak-box" title="racha">
             <svg class="stat-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.2 1-3.6 2.2-4.6.2 1.6 1 2.6 2.3 3C11 9 10.8 6 12 3z"/></svg>
@@ -61,14 +66,20 @@
         </div>
       </header>
 
-      <section class="stage" id="stage" data-mode="asking">
+      <div class="ambient" id="ambient" aria-hidden="true"></div>
+
+      <section class="stage" id="stage" data-mode="asking" data-kind="drill" role="tabpanel">
         <div class="card" id="card">
           <p class="meta">
             <span class="person" id="person"></span>
+            <span class="hint" id="hint" hidden></span>
             <span class="flag" id="flag" hidden></span>
           </p>
           <h1 class="verb" id="verb" lang="es"></h1>
+          <p class="prompt" id="prompt" lang="es"></p>
           <p class="gloss" id="gloss" lang="en"></p>
+
+          <div class="choices" id="choices" role="group"></div>
 
           <form class="answer" id="form" autocomplete="off" novalidate>
             <div class="field" id="field">
@@ -81,7 +92,10 @@
           </form>
 
           <div class="fix" id="fix" hidden>
-            <span class="right" id="right" lang="es"></span>
+            <div class="fix-text">
+              <span class="right" id="right" lang="es"></span>
+              <span class="why" id="why" lang="es"></span>
+            </div>
             <button class="next" id="next" type="button" aria-label="siguiente"></button>
           </div>
 
@@ -91,6 +105,8 @@
         <div class="burst" id="burst" aria-hidden="true"></div>
         <section class="conj" id="conj" hidden></section>
       </section>
+
+      <section class="read" id="read" role="tabpanel" hidden></section>
     </main>
   </div>
   <p class="sr" id="live" role="status" aria-live="polite"></p>
@@ -118,6 +134,8 @@
   <script src="js/data/l2-gustar.js"></script>
   <script src="js/data/l2-readings.js"></script>
   <script src="js/data/l2.js"></script>
+  <script src="js/ui/motion.js"></script>
+  <script src="js/ui/reading.js"></script>
   <script src="js/ui/app.js"></script>
 </body>
 </html>

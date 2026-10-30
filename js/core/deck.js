@@ -63,7 +63,8 @@
       const saved = store.state().items;
       const weights = list.map((it) => {
         const e = saved[keyOf(it)];
-        return WEIGHT[e ? e.box : NEUTRAL_BOX];
+        // Generated families (306 gustar forms) carry a weight so they do not crowd out the hand-written items.
+        return WEIGHT[e ? e.box : NEUTRAL_BOX] * (it.weight || 1);
       });
       let r = rng() * weights.reduce((s, w) => s + w, 0);
       for (let i = 0; i < list.length; i += 1) {

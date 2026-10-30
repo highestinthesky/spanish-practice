@@ -111,3 +111,17 @@ test('a retry is dropped when its item leaves the deck (filters changed)', () =>
     deck.answer(p, p.item.answers[0]);
   }
 });
+
+test('an item weight scales how often it comes up', () => {
+  const heavy = typed('heavy', ['lo']);
+  const light = { ...typed('light', ['la']), weight: 0.05 };
+  const others = ['a', 'b', 'c', 'd', 'e'].map((id) => typed(id, ['los']));
+  const deck = D.createDeck({ items: () => [heavy, light, ...others], store: memory(), rng: mulberry32(11), now: () => 1 });
+  const n = { heavy: 0, light: 0 };
+  for (let i = 0; i < 700; i += 1) {
+    const p = deck.next();
+    if (p.item.id in n) n[p.item.id] += 1;
+    deck.answer(p, p.item.answers[0]);
+  }
+  assert.ok(n.heavy > n.light * 3, JSON.stringify(n));
+});

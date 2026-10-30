@@ -29,7 +29,8 @@ const SCRIPT_ORDER = [
   'js/data/l2-readings.js',
   'js/data/l2.js',
 ];
-const UI_SCRIPT = 'js/ui/app.js';
+// The UI: motion and the reading view, then the app that wires them up.
+const UI_SCRIPTS = ['js/ui/motion.js', 'js/ui/reading.js', 'js/ui/app.js'];
 
 // Loads every script that exists yet, so early tasks can run before later files are written.
 function load() {
@@ -42,5 +43,5 @@ function load() {
 
 module.exports = load;
 module.exports.SCRIPT_ORDER = SCRIPT_ORDER;
-module.exports.UI_SCRIPT = UI_SCRIPT;
+module.exports.UI_SCRIPTS = UI_SCRIPTS;
 module.exports.ROOT = ROOT;

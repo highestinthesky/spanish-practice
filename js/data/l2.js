@@ -113,7 +113,7 @@
           const form = t.n === 'pl' ? v.pl : v.sg;
           items.push({
             id: `g:${slug(v.inf)}:${exp.id}:${t.id}`,
-            mode: 'gustar', skill: 'forma', form: 'gap', number: t.n, vos: Boolean(exp.vos),
+            mode: 'gustar', skill: 'forma', form: 'gap', number: t.n, weight: 0.15, vos: Boolean(exp.vos),
             prompt: `${exp.a} ___ (${v.inf}) ${t.t}.`,
             answers: [`${exp.p} ${form}`],
             why: `${t.t}: ${t.n === 'pl' ? 'plural' : 'singular'} → ${form} · ${exp.a.toLowerCase()} → ${exp.p}`,

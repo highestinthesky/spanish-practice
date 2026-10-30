@@ -7,7 +7,7 @@
   const BOOKS = ['all', 'D1', 'D2', 'D3'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {} } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {} } };
   }
 
   function isCount(n) {
@@ -34,6 +34,13 @@
       if (Array.isArray(s.off)) out.settings.off = s.off.filter((c) => typeof c === 'string');
       if (typeof s.mode === 'string' && s.mode) out.settings.mode = s.mode;
       // Unticked filters per exercise mode: { vocab: ['deportes'], ... }.
+      if (typeof s.reading === 'string') out.settings.reading = s.reading;
+      // Last score per reading: { entradas: { r: 5, t: 7 } }.
+      if (s.scores && typeof s.scores === 'object' && !Array.isArray(s.scores)) {
+        for (const [id, sc] of Object.entries(s.scores)) {
+          if (sc && isCount(sc.r) && isCount(sc.t) && sc.r <= sc.t) out.settings.scores[id] = { r: sc.r, t: sc.t };
+        }
+      }
       if (s.ex && typeof s.ex === 'object' && !Array.isArray(s.ex)) {
         for (const [mode, list] of Object.entries(s.ex)) {
           if (Array.isArray(list)) out.settings.ex[mode] = list.filter((c) => typeof c === 'string');
