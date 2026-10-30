@@ -95,5 +95,48 @@ Lo que más me gusta del club es que nadie mira el reloj. Mi madre siempre me pr
         q('ref', 'En «para nosotros», «nosotros» es un pronombre…', ['preposicional', 'de objeto directo', 'de objeto indirecto', 'reflexivo'], { ref: 'r1' }),
       ],
     },
+    {
+      id: 'estreno',
+      title: 'La noche del estreno',
+      tag: 'teatro',
+      text: `Mi tía Rosa es actriz y el viernes fue el [[estreno|premiere]] de su nueva [[obra de teatro|play]]. Toda la familia fue a verla. Mi padre compró las entradas en la [[taquilla|box office]] una semana antes, porque sabía que se iban a [[agotar|sell out]].
+
+Antes de la [[función|performance]], mi primo Lucas estaba de mal humor. «A mí no me gusta el teatro», dijo. «Prefiero los [[videojuegos|video games]]». Mi madre {{lo|r1}} miró muy seria y él no dijo nada más.
+
+Cuando se abrió el telón, todos nos quedamos en silencio. El [[escenario|stage]] parecía un parque de verdad, con árboles y luces de colores. Mi tía hacía el papel de una cantante famosa que vuelve a su pueblo. Al final, el público se levantó y empezó a [[aplaudir|applaud]] durante cinco minutos.
+
+Después fuimos al camerino a darle flores a mi tía. Ella {{nos|r2}} abrazó a todos. Lucas le pidió un autógrafo y ella {{se lo|r3}} firmó con una sonrisa. En el coche, Lucas confesó: «Bueno… la obra fue más [[entretenida|entertaining]] de lo que pensaba».`,
+      questions: [
+        q('mc', '¿Quién es Rosa?', ['la tía del narrador, que es actriz', 'una cantante famosa de verdad', 'la madre de Lucas', 'la empleada de la taquilla']),
+        tf('El padre compró las entradas el mismo día del estreno.', false, 'Las compró una semana antes.'),
+        q('ref', 'En «Mi madre lo miró», «lo» es…', ['Lucas', 'el teatro', 'el videojuego', 'el padre'], { ref: 'r1', why: 'lo = OD, a Lucas' }),
+        q('mc', '¿Qué pensaba Lucas del teatro antes de la función?', ['No le gustaba.', 'Le encantaba.', 'Le interesaba mucho.', 'Le daba igual.']),
+        q('ref', '«Ella nos abrazó a todos». Aquí «nos» es un pronombre de…', ['objeto directo', 'objeto indirecto', 'preposicional', 'sujeto'], { ref: 'r2', why: 'abrazar a alguien: la persona es el OD' }),
+        q('ref', 'En «ella se lo firmó», ¿qué reemplazan «se» y «lo»?', ['se = a Lucas · lo = el autógrafo', 'se = a la tía · lo = el teatro', 'se = al público · lo = el programa', 'se = a la madre · lo = el coche'], { ref: 'r3', why: 'le + lo → se lo' }),
+        q('vocab', '«El público empezó a aplaudir» quiere decir que la gente…', ['dio palmadas porque le gustó', 'se fue del teatro', 'cantó con la actriz', 'hizo cola en la taquilla']),
+        tf('Al final, a Lucas la obra le pareció mejor de lo que esperaba.', true, '«La obra fue más entretenida de lo que pensaba».'),
+      ],
+    },
+    {
+      id: 'feria',
+      title: 'Domingo en la feria',
+      tag: 'diversiones',
+      text: `Cada septiembre llega a mi pueblo la [[feria|fair]]. Es el evento más [[animado|lively]] del año: hay música, comida y un pequeño [[parque de atracciones|amusement park]] con una noria enorme.
+
+Este año fui con mis amigos Daniel y Paula. A Daniel le [[fascinan|fascinate]] las montañas rusas, pero a Paula le [[dan miedo|scare]]. Por eso, mientras Daniel subía a la montaña rusa por tercera vez, Paula y yo jugamos a los [[dardos|darts]]. Ella ganó un sombrero ridículo y {{me lo|r1}} puso en la cabeza. ¡Qué vergüenza!
+
+Por la tarde había un [[torneo|tournament]] de [[boliche|bowling]] en la plaza. Daniel {{nos|r2}} desafió a una partida. Paula [[anotó|scored]] más puntos que nadie y [[venció|defeated]] a todos los chicos. Daniel no podía creerlo.
+
+Cuando empezó a oscurecer, compramos churros y nos sentamos a ver los fuegos artificiales. Paula me dijo: «Sin {{ti|r3}}, la feria no habría sido tan [[divertida|fun]]». Yo sonreí, todavía con el sombrero en la cabeza.`,
+      questions: [
+        q('mc', '¿Cuándo llega la feria al pueblo?', ['cada septiembre', 'cada domingo', 'cada verano', 'una vez cada diez años']),
+        tf('A Paula le encantan las montañas rusas.', false, 'A ella le dan miedo; a Daniel le fascinan.'),
+        q('ref', 'En «me lo puso en la cabeza», «lo» es…', ['el sombrero', 'el dardo', 'el churro', 'el torneo'], { ref: 'r1', why: 'me (a mí) + lo (el sombrero)' }),
+        q('ref', 'En «Daniel nos desafió», ¿a quiénes desafió?', ['a Paula y al narrador', 'a los chicos del pueblo', 'a sus padres', 'a los vendedores de churros'], { ref: 'r2', why: 'nos = a nosotros (Paula y yo)' }),
+        q('mc', '¿Quién ganó el torneo de boliche?', ['Paula', 'Daniel', 'el narrador', 'nadie: fue un empate']),
+        q('ref', '«Sin ti». ¿Por qué se usa «ti» y no «tú»?', ['Va después de la preposición «sin».', 'Es el sujeto del verbo.', 'Es un objeto indirecto.', 'Es un mandato.'], { ref: 'r3', why: 'después de preposición: mí, ti' }),
+        q('vocab', 'Si un evento es «animado», es…', ['alegre y lleno de vida', 'triste y silencioso', 'muy caro', 'peligroso']),
+      ],
+    },
   ];
 })(typeof window !== 'undefined' ? window : globalThis);

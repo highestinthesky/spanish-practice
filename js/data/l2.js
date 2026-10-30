@@ -132,7 +132,7 @@
       items.push(a.kind === 'choice' ? { ...base, ...choice(id, a.options) } : { ...base, answers: a.answers });
     }
     for (const t of L2.gustarTranslate) {
-      items.push({ id: `gt:${t.id}`, mode: 'gustar', skill: 'traduccion', form: 'en', prompt: t.prompt, lang: 'en', answers: t.answers });
+      items.push({ id: `gt:${t.id}`, mode: 'gustar', skill: 'traduccion', form: 'en', prompt: t.prompt, lang: 'en', answers: t.answers, vos: Boolean(t.vos) });
     }
     return items;
   }

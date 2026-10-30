@@ -195,5 +195,15 @@
     v('desafiar', 'to challenge', ['í/ú']),
     v('empatar', 'to tie (games)', ['regular']),
     v('vencer', 'to defeat', ['spelling']),
+    // Las diversiones, Estructuras 2.2: verbs like gustar
+    v('aburrir', 'to bore', ['regular']),
+    v('disgustar', 'to upset', ['regular']),
+    v('encantar', 'to like very much, to love', ['regular']),
+    v('faltar', 'to lack, to need', ['regular']),
+    v('fascinar', 'to fascinate', ['regular']),
+    v('importar', 'to matter, to be important to', ['regular']),
+    v('interesar', 'to interest', ['regular']),
+    v('molestar', 'to bother, to annoy', ['regular']),
+    v('preocupar', 'to worry', ['regular']),
   ]);
 })(typeof window !== 'undefined' ? window : globalThis);

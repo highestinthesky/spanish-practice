@@ -66,6 +66,14 @@
       'declarar', 'votar', 'elegir', 'obedecer',
     ],
     // Las diversiones
-    'D3.2': ['festejar', 'entretener', 'entretenerse', 'gustar', 'anotar', 'marcar', 'desafiar', 'empatar', 'vencer'],
+    'D3.2': [
+      'festejar', 'entretener', 'entretenerse', 'gustar', 'anotar', 'marcar', 'desafiar', 'empatar', 'vencer',
+      // the rest of the lesson's verb vocabulary, already taught in earlier books
+      'aplaudir', 'conseguir', 'ganar', 'perder', 'brindar', 'celebrar', 'pasear', 'disfrutar', 'divertirse',
+      'aburrirse', 'reunirse', 'salir',
+      // verbs like gustar (Estructuras 2.2)
+      'aburrir', 'caer', 'disgustar', 'doler', 'encantar', 'faltar', 'fascinar', 'importar', 'interesar',
+      'molestar', 'preocupar', 'quedar', 'sorprender',
+    ],
   });
 })(typeof window !== 'undefined' ? window : globalThis);

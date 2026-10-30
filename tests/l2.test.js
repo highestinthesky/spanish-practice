@@ -104,7 +104,7 @@ test('en → es accepts the bare noun and every Spanish word that shares the mea
 });
 
 test('readings: markers parse, and every reference question points at a marker in its passage', () => {
-  assert.ok(D.L2.readings.length >= 4);
+  assert.ok(D.L2.readings.length >= 6);
   for (const r of D.L2.readings) {
     const parts = D.L2.parseReading(r.text);
     const refs = new Set(parts.filter((p) => p.type === 'ref').map((p) => p.id));
@@ -124,4 +124,27 @@ test('option order is shuffled but stable between calls', () => {
   const b = D.L2.items('pronombres', base).filter((x) => x.options);
   assert.deepEqual(a.map((x) => x.options), b.map((x) => x.options));
   assert.ok(a.some((x) => x.correct !== 0), 'every answer sits first');
+});
+
+test('every skill has a full set of practice items', () => {
+  const by = (mode) => {
+    const n = {};
+    for (const it of D.L2.items(mode, base)) n[it.skill] = (n[it.skill] || 0) + 1;
+    return n;
+  };
+  const p = by('pronombres');
+  for (const skill of ['od', 'oi', 'doble', 'prep', 'pos']) assert.ok(p[skill] >= 18, `pronombres/${skill}: ${p[skill]}`);
+  const g = by('gustar');
+  assert.ok(g.a >= 24, `gustar/a: ${g.a}`);
+  assert.ok(g.traduccion >= 26, `gustar/traduccion: ${g.traduccion}`);
+  assert.ok(g.forma >= 350, `gustar/forma: ${g.forma}`);
+  assert.ok(by('vocab').contexto >= 60, 'vocab/contexto');
+});
+
+test('every vocab group has context sentences for most of its words', () => {
+  for (const group of D.L2.VOCAB_GROUPS) {
+    const words = D.L2.vocab.filter((w) => w.group === group.id).length;
+    const sentences = D.L2.context.filter((c) => c.group === group.id).length;
+    assert.ok(sentences >= words - 3, `${group.id}: ${sentences} sentences for ${words} words`);
+  }
 });
