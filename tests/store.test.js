@@ -15,7 +15,7 @@ function fakeStorage(initial) {
 
 test('fresh store has defaults', () => {
   const s = D.createStore(() => fakeStorage());
-  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {} } });
+  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false } });
 });
 
 test('the storage key is conjugacion.v1', () => {
@@ -87,7 +87,7 @@ test('sanitize drops bad items and bad settings but keeps good ones', () => {
   });
   const s = D.createStore(() => fakeStorage(raw));
   assert.deepEqual(Object.keys(s.state().items), ['good']);
-  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {} });
+  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false });
 });
 
 test('clear resets state and removes the stored key', () => {
@@ -134,4 +134,10 @@ test('reading scores persist; impossible ones are dropped', () => {
   const b = D.createStore(() => storage);
   assert.equal(b.state().settings.reading, 'final');
   assert.deepEqual(b.state().settings.scores, { final: { r: 5, t: 7 } });
+});
+
+test('strictAccents is kept only as a boolean', () => {
+  const load = (v) => D.createStore(() => ({ getItem: () => JSON.stringify({ settings: { strictAccents: v } }), setItem() {}, removeItem() {} })).state().settings.strictAccents;
+  assert.equal(load(true), true);
+  assert.equal(load('yes'), false);
 });

@@ -39,7 +39,7 @@ test('all ids the UI needs exist in the page', () => {
   for (const id of ['app', 'side', 'main', 'menu', 'close', 'scrim', 'book', 'types', 'vos', 'pool',
     'streak-box', 'streak', 'best', 'acc', 'count', 'stage', 'card', 'person', 'flag', 'verb', 'gloss',
     'form', 'field', 'input', 'echo', 'submit', 'fix', 'right', 'next', 'keys', 'empty', 'burst', 'conj', 'live',
-    'modes', 'modes-ink', 'ex-groups', 'ambient', 'hint', 'prompt', 'choices', 'why', 'read']) {
+    'modes', 'modes-ink', 'ex-groups', 'ambient', 'hint', 'prompt', 'choices', 'why', 'read', 'strict', 'nudge']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
 });
@@ -47,7 +47,7 @@ test('all ids the UI needs exist in the page', () => {
 test('the page has no prose: the only hard-coded words are the wordmark and the rail labels', () => {
   const body = html.slice(html.indexOf('<body>'), html.indexOf('<script'));
   const text = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  assert.equal(text, 'repaso libro tipo de verbo vosotros');
+  assert.equal(text, 'repaso libro tipo de verbo vosotros acentos estrictos');
 });
 
 test('the settings rail uses real form controls: a labelled drawer button, fieldsets, a vosotros switch', () => {

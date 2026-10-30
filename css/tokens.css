@@ -20,6 +20,8 @@
   --color-bad: oklch(52% 0.19 25);
   --color-bad-soft: oklch(94.5% 0.035 25);
   --color-flame: oklch(66% 0.18 50);
+  --color-flame-text: oklch(49% 0.14 50);
+  --color-flame-soft: oklch(94.5% 0.035 70);
   --color-focus: var(--color-accent);
   --color-scrim: oklch(21% 0.02 50 / 0.36);
   --color-glyph: oklch(89% 0.035 268);

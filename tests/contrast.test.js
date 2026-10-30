@@ -40,6 +40,10 @@ test('correct and wrong text reads on their tints at 4.5:1', () => {
   assert.ok(ratio('color-good', 'color-good-soft') >= 4.5);
   assert.ok(ratio('color-bad', 'color-bad-soft') >= 4.5);
 });
+test('accent reminders (flame text on its tint and on the correct field) are at least 4.5:1', () => {
+  assert.ok(ratio('color-flame-text', 'color-flame-soft') >= 4.5);
+  assert.ok(ratio('color-flame-text', 'color-good-soft') >= 4.5);
+});
 test('muted labels on the side rail are at least 4.5:1', () => assert.ok(ratio('color-muted', 'color-paper-2') >= 4.5));
 test('the correction text on ink is at least 7:1', () => assert.ok(ratio('color-surface', 'color-ink') >= 7));
 test('irregular forms on the current-row tint are at least 4.5:1', () => assert.ok(ratio('color-accent-text', 'color-accent-soft') >= 4.5));

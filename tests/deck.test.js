@@ -35,6 +35,20 @@ test('an accent-only slip is reported as accent and is not correct', () => {
   assert.ok(r.marks[1]);
 });
 
+test('the deck accepts an accent slip unless strict accents are on', () => {
+  const item = typed('a1', ['cómprala']);
+  const loose = deckOf([item]);
+  const r1 = loose.answer(loose.next(), 'comprala');
+  assert.equal(r1.ok, true);
+  assert.equal(r1.result, 'accent');
+  const store = memory();
+  store.setSetting('strictAccents', true);
+  const strict = deckOf([item], store);
+  const r2 = strict.answer(strict.next(), 'comprala');
+  assert.equal(r2.ok, false);
+  assert.equal(r2.result, 'accent');
+});
+
 test('an empty deck returns null instead of throwing', () => {
   assert.equal(deckOf([]).next(), null);
 });

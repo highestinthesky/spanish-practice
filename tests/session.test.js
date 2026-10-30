@@ -82,8 +82,18 @@ test('answer: correct answer is ok, recorded, and counts toward accuracy', () =>
   assert.deepEqual(session.recent(), ['ok']);
 });
 
-test('answer: wrong and accent-only answers are not ok and carry marks', () => {
+test('answer: an accent-only slip counts by default, still reported as accent with marks', () => {
   const { session } = setup();
+  const p = { key: 'present|pensar|4', verb: { inf: 'pensar' }, person: 4, tenseId: 'present', personLabel: 'vosotros', expected: 'pensáis' };
+  const accent = session.answer(p, 'pensais');
+  assert.equal(accent.ok, true);
+  assert.equal(accent.result, 'accent');
+  assert.equal(accent.marks[4], true);
+});
+
+test('answer: with strict accents, wrong and accent-only answers are not ok and carry marks', () => {
+  const { session, store } = setup();
+  store.setSetting('strictAccents', true);
   const p = { key: 'present|pensar|4', verb: { inf: 'pensar' }, person: 4, tenseId: 'present', personLabel: 'vosotros', expected: 'pensáis' };
   const accent = session.answer(p, 'pensais');
   assert.equal(accent.ok, false);

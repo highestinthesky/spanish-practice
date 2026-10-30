@@ -121,7 +121,7 @@
       },
       answer(prompt, text) {
         const r = D.normalize.check(text, prompt.expected);
-        const ok = r.result === 'correct';
+        const ok = D.normalize.passes(r.result, store.state().settings.strictAccents);
         store.record(prompt.key, ok, now());
         retries = retries.filter((x) => x.key !== prompt.key);
         if (!ok && prompt.item) retries.push({ ...prompt.item, due: served + RETRY_AFTER });

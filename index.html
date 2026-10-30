@@ -35,6 +35,11 @@
           <span class="switch-label">vosotros</span>
           <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
         </label>
+        <label class="switch">
+          <input class="switch-input" id="strict" type="checkbox" role="switch">
+          <span class="switch-label">acentos estrictos</span>
+          <span class="switch-track" aria-hidden="true"><span class="switch-thumb"></span></span>
+        </label>
         <p class="pool" id="pool" aria-live="polite"></p>
       </div>
     </aside>
@@ -79,7 +84,7 @@
           <p class="prompt" id="prompt" lang="es"></p>
           <p class="gloss" id="gloss" lang="en"></p>
 
-          <div class="choices" id="choices" role="group"></div>
+          <div class="choices" id="choices" role="group" tabindex="-1"></div>
 
           <form class="answer" id="form" autocomplete="off" novalidate>
             <div class="field" id="field">
@@ -90,6 +95,8 @@
               <button class="submit" id="submit" type="submit" aria-label="comprobar" data-mark="arrow"></button>
             </div>
           </form>
+
+          <p class="nudge" id="nudge" lang="es" hidden></p>
 
           <div class="fix" id="fix" hidden>
             <div class="fix-text">

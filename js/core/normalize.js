@@ -29,5 +29,10 @@
     return { result: 'wrong', marks: m };
   }
 
-  D.normalize = { norm, stripAcute, check };
+  // Loose grading (the default) counts an accent-only slip as right; the UI still points it out.
+  function passes(result, strict) {
+    return result === 'correct' || (result === 'accent' && !strict);
+  }
+
+  D.normalize = { norm, stripAcute, check, passes };
 })(typeof window !== 'undefined' ? window : globalThis);

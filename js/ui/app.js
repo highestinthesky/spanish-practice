@@ -8,6 +8,8 @@
   const CORRECT_DELAY_MS = 320;
   const CORRECT_DELAY_ANIMATED_MS = 620;
   const CHOICE_DELAY_MS = 700;
+  // An accent slip that still counts stays up long enough to read the reminder.
+  const NUDGE_DELAY_MS = 1800;
   const MILESTONE = 5;
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -24,13 +26,13 @@
 
   const el = {
     app: $('app'), side: $('side'), main: $('main'), menu: $('menu'), close: $('close'), scrim: $('scrim'),
-    book: $('book'), types: $('types'), exGroups: $('ex-groups'), vos: $('vos'), pool: $('pool'),
+    book: $('book'), types: $('types'), exGroups: $('ex-groups'), vos: $('vos'), strict: $('strict'), pool: $('pool'),
     modes: $('modes'), ink: $('modes-ink'), ambient: $('ambient'),
     streakBox: $('streak-box'), streak: $('streak'), best: $('best'), acc: $('acc'), count: $('count'),
     stage: $('stage'), card: $('card'), person: $('person'), hint: $('hint'), flag: $('flag'), verb: $('verb'),
     prompt: $('prompt'), gloss: $('gloss'), choices: $('choices'),
     form: $('form'), field: $('field'), input: $('input'), echo: $('echo'), submit: $('submit'),
-    fix: $('fix'), right: $('right'), why: $('why'), next: $('next'), keys: $('keys'), empty: $('empty'),
+    nudge: $('nudge'), fix: $('fix'), right: $('right'), why: $('why'), next: $('next'), keys: $('keys'), empty: $('empty'),
     burst: $('burst'), conj: $('conj'), read: $('read'), live: $('live'),
   };
 
@@ -199,6 +201,8 @@
     }
 
     el.vos.addEventListener('change', () => changed(() => session.setVosotros(el.vos.checked)));
+    // Grading only: the current question stays.
+    el.strict.addEventListener('change', () => store.setSetting('strictAccents', el.strict.checked));
   }
 
   function exOff(mode) {
@@ -274,6 +278,7 @@
   function syncRail() {
     const st = settings();
     el.vos.checked = st.vosotros;
+    el.strict.checked = st.strictAccents;
     if (appMode === 'conjugar') {
       for (const input of el.book.querySelectorAll('input')) {
         input.checked = input.value === st.book;
@@ -445,10 +450,11 @@
 
   function focusAnswer() {
     if (appMode === 'lectura') return false;
+    // The group, not an option: a focused option would stand out, and it is the answer one time in four.
     if (mode === 'asking' && el.stage.dataset.kind === 'choice') {
-      const b = el.choices.querySelector('.choice');
-      if (b) b.focus({ preventScroll: true });
-      return Boolean(b);
+      if (!el.choices.firstChild) return false;
+      el.choices.focus({ preventScroll: true });
+      return true;
     }
     if (mode === 'asking') {
       el.input.focus({ preventScroll: true });
@@ -572,6 +578,7 @@
     prompt = null;
     setMode('empty');
     el.fix.hidden = true;
+    el.nudge.hidden = true;
     el.empty.hidden = false;
     el.choices.replaceChildren();
     hideTable();
@@ -590,6 +597,7 @@
     setMode('asking');
     el.empty.hidden = true;
     el.fix.hidden = true;
+    el.nudge.hidden = true;
     el.why.textContent = '';
     el.echo.replaceChildren();
     el.submit.dataset.mark = 'arrow';
@@ -722,9 +730,12 @@
     setMode('correct');
     el.submit.dataset.mark = 'tick';
     el.input.readOnly = true;
-    announce('correcto');
-    const shown = appMode === 'conjugar' ? D.normalize.norm(res.expected) : D.exercise.norm(el.input.value);
-    const chars = letters(el.echo, shown);
+    const slip = res.result === 'accent';
+    announce(slip ? `correcto. ojo con el acento: ${res.expected}` : 'correcto');
+    // An accent slip shows the right spelling with the missed letters marked.
+    const norm = appMode === 'conjugar' ? D.normalize.norm : D.exercise.norm;
+    const chars = letters(el.echo, norm(slip || appMode === 'conjugar' ? res.expected : el.input.value), slip ? res.marks : null);
+    if (slip) showNudge(res.expected);
     if (appMode !== 'conjugar') fillGap(res.expected, 'good');
     if (animate()) {
       motion.balloons(chars, el.card);
@@ -732,7 +743,14 @@
       motion.pop(el.submit, 1.12);
     }
     celebrate(true, el.submit);
-    scheduleNext(CORRECT_DELAY_ANIMATED_MS);
+    if (slip) timer = setTimeout(() => nextPrompt(true), NUDGE_DELAY_MS);
+    else scheduleNext(CORRECT_DELAY_ANIMATED_MS);
+  }
+
+  function showNudge(expected) {
+    el.nudge.replaceChildren(node('span', 'nudge-k', 'ojo con el acento'), node('span', 'nudge-w', expected));
+    el.nudge.hidden = false;
+    if (animate()) G.fromTo(el.nudge, { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out', clearProps: 'transform,opacity' });
   }
 
   function showWrong(res, why) {

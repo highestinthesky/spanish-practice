@@ -98,7 +98,7 @@
           res = { ok, result: ok ? 'correct' : 'wrong', expected: item.options[item.correct], picked: given, marks: [] };
         } else {
           const r = check(given, item.answers);
-          res = { ok: r.result === 'correct', result: r.result, expected: r.expected, marks: r.marks };
+          res = { ok: D.normalize.passes(r.result, store.state().settings.strictAccents), result: r.result, expected: r.expected, marks: r.marks };
         }
         store.record(prompt.key, res.ok, now());
         retries = retries.filter((r) => r.item.id !== item.id);
