@@ -138,5 +138,89 @@ Cuando empezó a oscurecer, compramos churros y nos sentamos a ver los fuegos ar
         q('vocab', 'Si un evento es «animado», es…', ['alegre y lleno de vida', 'triste y silencioso', 'muy caro', 'peligroso']),
       ],
     },
+    {
+      id: 'sorpresa',
+      title: 'La fiesta sorpresa',
+      tag: 'diversiones',
+      text: `Para el cumpleaños de Andrés, sus amigos organizaron una fiesta sorpresa en el [[club deportivo|sports club]]. Laura compró un pastel enorme y Tomás {{lo|r1}} escondió en la cocina. Los demás decoraron el salón con globos y prepararon [[juegos de mesa|board games]], [[dardos|darts]] y una mesa de [[billar|billiards]].
+
+A las ocho, Andrés llegó con su hermana, que le había dicho que iban a [[salir a comer|go out to eat]]. Cuando abrió la puerta, todos gritaron «¡Sorpresa!». Andrés no podía creerlo. «¿Todo esto es para {{mí|r2}}?», preguntó.
+
+La fiesta estuvo muy [[animada|lively]]. Algunos jugaron al billar, otros bailaron y nadie se [[aburrió|got bored]]. A Andrés le encantan los dardos, así que [[desafió|challenged]] a Tomás. Andrés ganó tres partidas seguidas.
+
+Al final, Laura sacó el pastel y {{se lo|r3}} dio a Andrés. Todos [[brindaron|toasted]] por él con jugo de naranja. «Ustedes son los mejores», dijo Andrés. «Nunca voy a olvidar esta noche».`,
+      questions: [
+        q('mc', '¿Dónde fue la fiesta?', ['en el club deportivo', 'en casa de Andrés', 'en un restaurante', 'en el parque de atracciones']),
+        tf('Andrés sabía que había una fiesta.', false, 'Su hermana le dijo que iban a salir a comer.'),
+        q('ref', 'En «Tomás lo escondió en la cocina», ¿qué reemplaza «lo»?', ['el pastel', 'el billar', 'el club', 'el salón'], { ref: 'r1', why: 'lo = el pastel (OD masculino singular)' }),
+        q('ref', '«¿Todo esto es para mí?» ¿Por qué «mí» lleva acento?', ['Es un pronombre después de una preposición.', 'Es un posesivo.', 'Es un mandato.', 'Es un objeto indirecto.'], { ref: 'r2', why: 'mí (pronombre) ≠ mi (posesivo: mi casa)' }),
+        q('vocab', 'En el texto, «animada» quiere decir que la fiesta…', ['tenía mucha energía', 'era muy tranquila', 'era aburrida', 'terminó temprano']),
+        tf('Andrés le ganó a Tomás jugando a los dardos.', true, 'Ganó tres partidas seguidas.'),
+        q('ref', 'En «se lo dio a Andrés», ¿qué son «se» y «lo»?', ['se = a Andrés · lo = el pastel', 'se = a Laura · lo = el billar', 'se = a Tomás · lo = el pastel', 'se = a la hermana · lo = el regalo'], { ref: 'r3', why: 'le + lo → se lo' }),
+      ],
+    },
+    {
+      id: 'zoologico',
+      title: 'Un domingo en el zoológico',
+      tag: 'lugares',
+      text: `El domingo, la familia Morales fue al [[zoológico|zoo]]. A los gemelos, Pablo y Nora, les fascinan los animales, pero a su padre le [[aburren|bore]] un poco. Por eso, la madre propuso un plan: primero el zoológico y después el [[parque de atracciones|amusement park]].
+
+En la entrada, el padre compró los boletos y {{se los|r1}} dio a los niños. Pablo quería ver los leones; Nora prefería los pingüinos. «No se peleen», dijo la madre. «Hay tiempo para {{verlos|r2}} a todos».
+
+A mediodía, a Nora le dolían los pies y a Pablo le [[hacía falta|needed]] comer algo. Comieron en un restaurante y después [[dieron un paseo|took a stroll]] alrededor del lago.
+
+Por la tarde, en el parque de atracciones, el padre se divirtió más que nadie. Se subió tres veces a la montaña rusa. «A {{mí|r3}} no me interesan mucho los animales», dijo riéndose, «pero esto sí que [[vale la pena|is worth it]]».`,
+      questions: [
+        q('mc', '¿Por qué fueron también al parque de atracciones?', ['Al padre le aburren un poco los animales.', 'Los niños tenían miedo de los leones.', 'El zoológico estaba cerrado.', 'Ganaron boletos en la lotería.']),
+        q('ref', 'En «se los dio a los niños», ¿qué reemplaza «los»?', ['los boletos', 'los leones', 'los pingüinos', 'los pies'], { ref: 'r1', why: 'les + los → se los; los = los boletos' }),
+        q('ref', 'En «Hay tiempo para verlos a todos», ¿a qué se refiere «los»?', ['a los animales', 'a los boletos', 'a los padres', 'a los restaurantes'], { ref: 'r2', why: 'los = los leones y los pingüinos' }),
+        tf('A mediodía, a Nora le dolían los pies.', true, 'A Nora le dolían los pies y Pablo tenía hambre.'),
+        q('vocab', 'En el texto, «le hacía falta comer» quiere decir que Pablo…', ['necesitaba comer', 'no quería comer', 'comió demasiado', 'preparó la comida']),
+        tf('Al padre no le gustó el parque de atracciones.', false, 'Se subió tres veces a la montaña rusa y dijo que valía la pena.'),
+        q('ref', '«A mí no me interesan mucho los animales». ¿Para qué sirve «a mí»?', ['para dar énfasis a «me»', 'es el sujeto de «interesan»', 'es un objeto directo', 'es un mandato'], { ref: 'r3', why: 'a mí refuerza me; el sujeto es «los animales»' }),
+      ],
+    },
+    {
+      id: 'ajedrez',
+      title: 'El torneo de ajedrez',
+      tag: 'deportes',
+      text: `Camila tiene catorce años y es la [[campeona|champion]] de ajedrez de su escuela. Este mes participó en su primer [[torneo|tournament]] nacional. Su [[entrenador|coach]], el profesor Ruiz, viajó {{con ella|r1}} a la capital.
+
+En la primera partida, Camila jugó contra un chico muy serio que no hablaba con nadie. La partida terminó en [[empate|tie]]. En la segunda, [[venció|defeated]] a una jugadora de veinte años. El profesor Ruiz estaba muy orgulloso y {{se lo|r2}} contó a los padres de Camila por teléfono.
+
+La última partida fue la más difícil. Su rival era el campeón del año anterior. Muchos [[espectadores|spectators]] se acercaron a mirar. Camila estaba nerviosa, pero recordó el consejo de su entrenador: «Piensa despacio y no tengas miedo».
+
+Después de tres horas, Camila perdió. Al principio estaba triste, pero el campeón le dio la mano y le dijo: «Juegas muy bien. El año que viene me vas a ganar». A Camila le [[encantaron|loved]] esas palabras y {{las|r3}} escribió en su cuaderno. Ahora practica todos los días en su [[tiempo libre|free time]].`,
+      questions: [
+        q('mc', '¿Quién acompañó a Camila al torneo?', ['su entrenador', 'sus padres', 'el campeón', 'su hermana']),
+        q('ref', 'En «viajó con ella», «ella» es un pronombre…', ['preposicional (va después de «con»)', 'de objeto directo', 'de objeto indirecto', 'sujeto del verbo'], { ref: 'r1', why: 'después de con: con ella (pero con + yo → conmigo)' }),
+        tf('Camila ganó la primera partida.', false, 'La primera partida terminó en empate.'),
+        q('ref', 'En «se lo contó a los padres», ¿qué reemplaza «se»?', ['a los padres de Camila', 'a Camila', 'al profesor Ruiz', 'a la jugadora'], { ref: 'r2', why: 'les + lo → se lo' }),
+        q('vocab', 'En el texto, «venció» quiere decir que Camila…', ['ganó la partida', 'perdió la partida', 'empató la partida', 'no jugó la partida']),
+        tf('Camila ganó el torneo.', false, 'Perdió la última partida contra el campeón.'),
+        q('ref', 'En «las escribió en su cuaderno», ¿qué reemplaza «las»?', ['esas palabras', 'las partidas', 'las piezas', 'las horas'], { ref: 'r3', why: 'las = esas palabras (OD femenino plural)' }),
+      ],
+    },
+    {
+      id: 'obra',
+      title: 'La obra de la escuela',
+      tag: 'teatro',
+      text: `Cada primavera, los estudiantes del colegio San Martín presentan una [[obra de teatro|play]]. Este año eligieron una comedia y Javier consiguió el papel principal. A él le [[interesa|interests]] mucho el teatro, pero le [[preocupaba|worried]] olvidar sus líneas.
+
+Durante un mes, Javier practicó cada noche. Su hermana mayor, Elena, leía las líneas de los otros personajes y él {{le|r1}} contestaba. Javier no podía ensayar sin {{ella|r2}}.
+
+El día del [[estreno|premiere]], el teatro estaba lleno. Los padres hicieron [[cola|line]] durante media hora para conseguir buenos [[asientos|seats]]. Cuando se abrió el telón, Javier subió al [[escenario|stage]] con el corazón a mil.
+
+¡No olvidó ni una línea! El público se rió mucho y al final todos empezaron a [[aplaudir|applaud]]. Elena le llevó flores a su hermano y {{se las|r3}} dio en el camerino. «Eres un actor de verdad», le dijo.`,
+      questions: [
+        q('mc', '¿Qué le preocupaba a Javier?', ['olvidar sus líneas', 'no conseguir el papel', 'que su hermana no viniera', 'que el teatro estuviera vacío']),
+        q('ref', 'En «él le contestaba», ¿a quién se refiere «le»?', ['a Elena', 'a Javier', 'al público', 'al profesor'], { ref: 'r1', why: 'le = a ella (OI)' }),
+        q('ref', '«Javier no podía ensayar sin ella». ¿Por qué se usa «ella» y no «la»?', ['Va después de una preposición.', 'Es un objeto directo.', 'Es un objeto indirecto.', 'Es un mandato.'], { ref: 'r2', why: 'después de sin: ella (pronombre preposicional)' }),
+        tf('Los padres hicieron cola para conseguir buenos asientos.', true, 'Hicieron cola durante media hora.'),
+        q('vocab', 'En el texto, «el estreno» es…', ['la primera vez que presentan la obra', 'el último ensayo', 'la taquilla del teatro', 'el papel principal']),
+        tf('Javier olvidó algunas líneas.', false, '¡No olvidó ni una línea!'),
+        q('ref', 'En «se las dio en el camerino», ¿qué reemplazan «se» y «las»?', ['se = a Javier · las = las flores', 'se = a Elena · las = las líneas', 'se = al público · las = las flores', 'se = a los padres · las = las entradas'], { ref: 'r3', why: 'le + las → se las' }),
+      ],
+    },
   ];
 })(typeof window !== 'undefined' ? window : globalThis);
