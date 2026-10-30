@@ -7,7 +7,7 @@
   const BOOKS = ['all', 'D1', 'D2', 'D3'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [] } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {} } };
   }
 
   function isCount(n) {
@@ -32,6 +32,13 @@
       if (typeof s.tense === 'string' && s.tense) out.settings.tense = s.tense;
       if (BOOKS.includes(s.book)) out.settings.book = s.book;
       if (Array.isArray(s.off)) out.settings.off = s.off.filter((c) => typeof c === 'string');
+      if (typeof s.mode === 'string' && s.mode) out.settings.mode = s.mode;
+      // Unticked filters per exercise mode: { vocab: ['deportes'], ... }.
+      if (s.ex && typeof s.ex === 'object' && !Array.isArray(s.ex)) {
+        for (const [mode, list] of Object.entries(s.ex)) {
+          if (Array.isArray(list)) out.settings.ex[mode] = list.filter((c) => typeof c === 'string');
+        }
+      }
     }
     return out;
   }

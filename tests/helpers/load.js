@@ -12,6 +12,7 @@ const SCRIPT_ORDER = [
   'js/core/scheduler.js',
   'js/core/session.js',
   'js/core/guard.js',
+  'js/core/deck.js',
   'js/core/conjugate.js',
   'js/data/verb.js',
   'js/tenses/present.js',
@@ -22,6 +23,11 @@ const SCRIPT_ORDER = [
   'js/data/verbs-regular.js',
   'js/data/verbs-descubre.js',
   'js/data/descubre.js',
+  'js/data/l2-vocab.js',
+  'js/data/l2-pronouns.js',
+  'js/data/l2-gustar.js',
+  'js/data/l2-readings.js',
+  'js/data/l2.js',
 ];
 const UI_SCRIPT = 'js/ui/app.js';
 
