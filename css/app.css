@@ -185,6 +185,25 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 }
 .pool-n { font-family: var(--font-mono); font-size: var(--text-stat); font-weight: 600; color: var(--color-ink); }
 .pool[data-empty] .pool-n, .pool[data-empty] { color: var(--color-bad); }
+.pool-fresh { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-micro); color: var(--color-muted); }
+
+/* lesson drop-downs: a native select, drawn to match the rail */
+.pick { display: grid; gap: var(--space-xs); }
+.pick-box { position: relative; display: block; }
+.pick-box::after {
+  content: ""; position: absolute; right: 14px; top: 50%; width: 7px; height: 7px; pointer-events: none;
+  border-right: 2px solid var(--color-muted); border-bottom: 2px solid var(--color-muted);
+  transform: translateY(-70%) rotate(45deg);
+}
+.pick-select {
+  appearance: none; -webkit-appearance: none; width: 100%; min-height: 44px;
+  padding: 0 36px 0 var(--space-sm);
+  font: inherit; font-size: var(--text-label); font-weight: 600; color: var(--color-ink);
+  background: var(--color-surface); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card); cursor: pointer;
+}
+.pick-select:hover { border-color: var(--color-neutral); }
+.pick-select:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 1px; }
 
 .scrim { display: none; }
 

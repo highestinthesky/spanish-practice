@@ -3,89 +3,13 @@
   const D = (root.Drill = root.Drill || {});
   const L2 = (D.L2 = D.L2 || {});
 
-  D.MODES = [
-    { id: 'conjugar', name: 'conjugar' },
-    { id: 'vocab', name: 'vocab' },
-    { id: 'pronombres', name: 'pronombres' },
-    { id: 'gustar', name: 'gustar' },
-    { id: 'lectura', name: 'lectura' },
-    { id: 'mezcla', name: 'mezcla' },
-  ];
-
-  /* ---------- helpers ---------- */
-
-  const slug = (s) =>
-    s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-  // Seeded by the item id, so an item's options keep the same order on every visit.
-  function rngFor(id) {
-    let h = 2166136261;
-    for (const ch of id) h = Math.imul(h ^ ch.codePointAt(0), 16777619);
-    let a = h >>> 0;
-    return () => {
-      a = (a + 0x6d2b79f5) >>> 0;
-      let t = a;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function shuffle(list, rng) {
-    const out = list.slice();
-    for (let i = out.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(rng() * (i + 1));
-      [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
-  }
-
-  // options[0] is the answer on the way in; shuffled, with the answer's new index.
-  function choice(id, options) {
-    const order = shuffle(options, rngFor(id));
-    return { options: order, correct: order.indexOf(options[0]) };
-  }
-
-  // Three wrong options, preferring the same group, never repeating the answer.
-  function distractors(id, answer, near, far) {
-    const rng = rngFor(`${id}:d`);
-    const pickFrom = (pool, n) => shuffle(pool.filter((x) => x !== answer), rng).slice(0, n);
-    const first = pickFrom(Array.from(new Set(near)), 3);
-    const rest = pickFrom(Array.from(new Set(far)).filter((x) => !first.includes(x)), 3 - first.length);
-    return [...first, ...rest];
-  }
-
-  // Accepted Spanish for a vocab entry: with its article, and the bare word for nouns.
-  function forms(es) {
-    const m = es.match(/^(el\/la|el|la|los|las) (.+)$/);
-    if (!m) return [es];
-    if (m[1] === 'el/la') return [`el ${m[2]}`, `la ${m[2]}`, m[2]];
-    return [es, m[2]];
-  }
+  const { slug, choice, distractors, vocabItems } = D.lessonKit;
 
   /* ---------- vocab ---------- */
 
   function buildVocab() {
-    const items = [];
-    const allEn = L2.vocab.map((w) => w.en);
-    for (const w of L2.vocab) {
-      const id = `v:es:${slug(w.es)}`;
-      const near = L2.vocab.filter((x) => x.group === w.group && x.en !== w.en).map((x) => x.en);
-      items.push({
-        id, mode: 'vocab', skill: 'es-en', group: w.group, big: w.es, lang: 'es',
-        ...choice(id, [w.en, ...distractors(id, w.en, near, allEn)]),
-      });
-    }
-    // One en → es card per meaning, accepting every word that has it (anotar and marcar).
-    const byEn = new Map();
-    for (const w of L2.vocab) {
-      if (!byEn.has(w.en)) byEn.set(w.en, []);
-      byEn.get(w.en).push(w);
-    }
-    for (const [en, words] of byEn) {
-      const answers = Array.from(new Set(words.flatMap((w) => [...forms(w.es), ...w.also.flatMap(forms)])));
-      items.push({ id: `v:en:${slug(en)}`, mode: 'vocab', skill: 'en-es', group: words[0].group, big: en, lang: 'en', answers });
-    }
+    // Lección 2 ids predate the lesson registry (v:es:…, v:en:…); kept so saved progress still counts.
+    const items = vocabItems('v', L2.vocab).map((it) => ({ ...it, mode: 'vocab' }));
     for (const c of L2.context) {
       const id = `v:cx:${c.id}`;
       items.push({ id, mode: 'vocab', skill: 'contexto', group: c.group, prompt: c.prompt, why: c.why, ...choice(id, c.options) });
@@ -113,7 +37,7 @@
           const form = t.n === 'pl' ? v.pl : v.sg;
           items.push({
             id: `g:${slug(v.inf)}:${exp.id}:${t.id}`,
-            mode: 'gustar', skill: 'forma', form: 'gap', number: t.n, weight: 0.15, vos: Boolean(exp.vos),
+            mode: 'gustar', skill: 'forma', form: 'gap', number: t.n, vos: Boolean(exp.vos),
             prompt: `${exp.a} ___ (${v.inf}) ${t.t}.`,
             answers: [`${exp.p} ${form}`],
             why: `${t.t}: ${t.n === 'pl' ? 'plural' : 'singular'} → ${form} · ${exp.a.toLowerCase()} → ${exp.p}`,
@@ -179,30 +103,19 @@
 
   /* ---------- reading ---------- */
 
-  // Flat list of parts: text, gloss ([[word|gloss]]), ref ({{word|id}}) and a break between paragraphs.
-  L2.parseReading = (text) => {
-    const parts = [];
-    text.split(/\n\s*\n/).forEach((para, i) => {
-      if (i) parts.push({ type: 'break' });
-      const re = /\[\[([^|\]]+)\|([^\]]+)\]\]|\{\{([^|}]+)\|([^}]+)\}\}/g;
-      let at = 0;
-      let m;
-      while ((m = re.exec(para))) {
-        if (m.index > at) parts.push({ type: 'text', text: para.slice(at, m.index) });
-        if (m[1]) parts.push({ type: 'gloss', text: m[1], gloss: m[2] });
-        else parts.push({ type: 'ref', text: m[3], id: m[4] });
-        at = re.lastIndex;
-      }
-      if (at < para.length) parts.push({ type: 'text', text: para.slice(at) });
-    });
-    return parts;
-  };
+  L2.parseReading = D.lessons.parseReading;
 
-  L2.readings = L2.readings.map((r) => ({
-    ...r,
-    questions: r.questions.map((qn, i) => {
-      if (qn.fixed) return qn;
-      return { ...qn, ...choice(`r:${r.id}:${i}`, qn.options) };
-    }),
-  }));
+  D.addLesson({
+    id: 'D3.2',
+    title: 'Las diversiones',
+    filters: [
+      ...FILTERS.vocab.map((g) => ({ ...g, name: `vocab · ${g.name}` })),
+      { ...FILTERS.pronombres[0], name: 'pronombres' },
+      { ...FILTERS.gustar[0], name: 'gustar' },
+      { id: 'reflexivos', name: 'reflexivos', items: L2.REFLEXIVE_SKILLS },
+    ],
+    build: () => [...BUILT.vocab, ...BUILT.pronombres, ...BUILT.gustar, ...L2.reflexives],
+    readings: L2.readings,
+  });
+  L2.readings = D.lessons.readings().filter((r) => r.lesson === 'D3.2');
 })(typeof window !== 'undefined' ? window : globalThis);

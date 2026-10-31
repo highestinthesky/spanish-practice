@@ -15,7 +15,7 @@ function fakeStorage(initial) {
 
 test('fresh store has defaults', () => {
   const s = D.createStore(() => fakeStorage());
-  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false } });
+  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } });
 });
 
 test('the storage key is conjugacion.v1', () => {
@@ -87,7 +87,7 @@ test('sanitize drops bad items and bad settings but keeps good ones', () => {
   });
   const s = D.createStore(() => fakeStorage(raw));
   assert.deepEqual(Object.keys(s.state().items), ['good']);
-  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false });
+  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' });
 });
 
 test('clear resets state and removes the stored key', () => {
@@ -113,17 +113,33 @@ test('off setting: an array of type names, anything else becomes empty', () => {
   }
 });
 
-test('mode and exercise filters persist; junk values fall back to defaults', () => {
+test('mode, lesson and exercise filters persist; junk values fall back to defaults', () => {
   const storage = fakeStorage();
   const a = D.createStore(() => storage);
-  a.setSetting('mode', 'gustar');
-  a.setSetting('ex', { vocab: ['deportes'], pronombres: ['od', 7] });
+  a.setSetting('mode', 'general');
+  a.setSetting('lesson', 'D1.4');
+  a.setSetting('upto', 'D2.3');
+  a.setSetting('focus', 'D2.1');
+  a.setSetting('ex', { 'D3.2': ['deportes', 'od', 7], general: ['mix'] });
   const b = D.createStore(() => storage);
-  assert.equal(b.state().settings.mode, 'gustar');
-  assert.deepEqual(b.state().settings.ex, { vocab: ['deportes'], pronombres: ['od'] });
-  const junk = D.createStore(() => fakeStorage(JSON.stringify({ settings: { mode: 5, ex: [1, 2] } })));
+  assert.equal(b.state().settings.mode, 'general');
+  assert.equal(b.state().settings.lesson, 'D1.4');
+  assert.equal(b.state().settings.upto, 'D2.3');
+  assert.equal(b.state().settings.focus, 'D2.1');
+  assert.deepEqual(b.state().settings.ex, { 'D3.2': ['deportes', 'od'], general: ['mix'] });
+  const junk = D.createStore(() => fakeStorage(JSON.stringify({ settings: { mode: 5, ex: [1, 2], lesson: 'X9', upto: 3, focus: 'nope' } })));
   assert.equal(junk.state().settings.mode, 'conjugar');
   assert.deepEqual(junk.state().settings.ex, {});
+  assert.equal(junk.state().settings.lesson, 'D3.2');
+  assert.equal(junk.state().settings.focus, '');
+});
+
+test('the old Lección 2 tabs move to the D3.2 lesson, keeping their unticked filters', () => {
+  const raw = JSON.stringify({ settings: { mode: 'gustar', ex: { vocab: ['deportes'], pronombres: ['od'], gustar: [] } } });
+  const s = D.createStore(() => fakeStorage(raw));
+  assert.equal(s.state().settings.mode, 'leccion');
+  assert.equal(s.state().settings.lesson, 'D3.2');
+  assert.deepEqual(s.state().settings.ex, { 'D3.2': ['deportes', 'od'] });
 });
 
 test('reading scores persist; impossible ones are dropped', () => {
