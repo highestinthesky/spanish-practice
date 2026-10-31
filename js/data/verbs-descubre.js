@@ -205,5 +205,24 @@
     v('interesar', 'to interest', ['regular']),
     v('molestar', 'to bother, to annoy', ['regular']),
     v('preocupar', 'to worry', ['regular']),
+
+    // Las relaciones personales (Descubre 3, Lección 1)
+    v('adorar', 'to adore', ['regular']),
+    v('soñar', 'to dream', ['o→ue']),
+    v('coquetear', 'to flirt', ['regular']),
+    v('discutir', 'to argue', ['regular']),
+    v('educar', 'to raise, to bring up', ['regular']),
+    v('impresionar', 'to impress', ['regular']),
+    v('soportar', 'to put up with', ['regular']),
+    v('atraer', 'to attract', ['-go']),
+    v('proponer', 'to propose', ['-go']),
+    // La vida diaria (Descubre 3, Lección 3)
+    v('seleccionar', 'to select, to pick out', ['regular']),
+    v('averiguar', 'to find out, to check', ['regular']),
+    v('soler', 'to be in the habit of', ['o→ue']),
+    v('acostumbrarse', 'to get used to', ['regular']),
+    v('arreglarse', 'to get ready', ['regular']),
+    v('calentar', 'to warm up', ['e→ie']),
+    v('hervir', 'to boil', ['e→ie']),
   ]);
 })(typeof window !== 'undefined' ? window : globalThis);

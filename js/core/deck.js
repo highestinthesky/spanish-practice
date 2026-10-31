@@ -8,6 +8,8 @@
   // Pick weight by Leitner box: missed items (box 0) come up most, mastered ones (box 4) least.
   const WEIGHT = [8, 5, 3, 2, 1];
   const NEUTRAL_BOX = 2;
+  // An exercise answered right stays away for a day. Misses come back sooner on purpose (the retry, and box 0).
+  const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
   // Exercise answers are sentences: Spanish opening marks and final punctuation do not count.
   function norm(s) {
@@ -55,7 +57,26 @@
       return i < 0 ? null : retries.splice(i, 1)[0].item;
     }
 
-    function pick(pool) {
+    const cooling = (it, saved) => {
+      const e = saved[keyOf(it)];
+      return Boolean(e && e.seen && e.box > 0 && now() - e.last < COOLDOWN_MS);
+    };
+
+    // Everything answered right in the last day is out. When that is the whole pool, the quarter that has
+    // rested longest is back in (never what was just shown), so a small lesson still has something to ask.
+    function rested(pool) {
+      const saved = store.state().items;
+      const awake = pool.filter((it) => !cooling(it, saved));
+      if (awake.length) return awake;
+      const notRecent = pool.filter((it) => !recent.includes(it.id));
+      const lastId = recent[recent.length - 1];
+      const from = notRecent.length ? notRecent : pool.filter((it) => it.id !== lastId);
+      const byAge = (from.length ? from : pool).slice().sort((a, b) => saved[keyOf(a)].last - saved[keyOf(b)].last);
+      return byAge.slice(0, Math.max(1, Math.ceil(byAge.length / 4)));
+    }
+
+    function pick(all) {
+      const pool = rested(all);
       const fresh = pool.filter((it) => !recent.includes(it.id));
       const lastId = recent[recent.length - 1];
       const from = fresh.length ? fresh : pool.filter((it) => it.id !== lastId);
@@ -76,6 +97,11 @@
 
     return {
       size: () => items().length,
+      // Items not answered right in the last day.
+      fresh() {
+        const saved = store.state().items;
+        return items().filter((it) => !cooling(it, saved)).length;
+      },
       next() {
         const pool = items();
         if (!pool.length) return null;
@@ -116,6 +142,6 @@
     };
   }
 
-  D.exercise = { norm, check, RETRY_AFTER };
+  D.exercise = { norm, check, RETRY_AFTER, COOLDOWN_MS };
   D.createDeck = createDeck;
 })(typeof window !== 'undefined' ? window : globalThis);

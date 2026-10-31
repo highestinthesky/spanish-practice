@@ -75,5 +75,15 @@
       'aburrir', 'caer', 'disgustar', 'doler', 'encantar', 'faltar', 'fascinar', 'importar', 'interesar',
       'molestar', 'preocupar', 'quedar', 'sorprender',
     ],
+    // Las relaciones personales
+    'D3.1': [
+      'adorar', 'apreciar', 'enamorarse', 'odiar', 'sentirse', 'soñar', 'atraer', 'coquetear', 'cuidar', 'dejar',
+      'discutir', 'educar', 'impresionar', 'llevarse', 'mantenerse', 'proponer', 'romper', 'salir', 'soportar',
+    ],
+    // La vida diaria
+    'D3.3': [
+      'apagar', 'barrer', 'calentar', 'cocinar', 'encender', 'hervir', 'lavar', 'limpiar', 'quitar', 'devolver',
+      'probarse', 'seleccionar', 'acostumbrarse', 'arreglarse', 'averiguar', 'probar', 'soler',
+    ],
   });
 })(typeof window !== 'undefined' ? window : globalThis);

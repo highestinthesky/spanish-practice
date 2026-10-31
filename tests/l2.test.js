@@ -6,8 +6,18 @@ const D = require('./helpers/load')();
 const base = { vosotros: true, ex: {} };
 const EXERCISE_MODES = ['vocab', 'pronombres', 'gustar', 'mezcla'];
 
-test('the modes are conjugar, vocab, pronombres, gustar, lectura, mezcla', () => {
-  assert.deepEqual(D.MODES.map((m) => m.id), ['conjugar', 'vocab', 'pronombres', 'gustar', 'lectura', 'mezcla']);
+test('the modes are conjugar, lección, general, lectura', () => {
+  assert.deepEqual(D.MODES.map((m) => m.id), ['conjugar', 'leccion', 'general', 'lectura']);
+});
+
+test('Lección 2 is lesson D3.2: every L2 deck plus the reflexive verbs, under one set of filters', () => {
+  const all = D.lessons.items('D3.2', base);
+  assert.equal(all.length, D.L2.items('mezcla', base).length + D.L2.reflexives.length);
+  const noOd = D.lessons.items('D3.2', { ...base, ex: { 'D3.2': ['od', 'deportes'] } });
+  assert.ok(noOd.every((it) => it.skill !== 'od' && it.group !== 'deportes'));
+  for (const group of D.lessons.filters('D3.2')) {
+    for (const f of group.items) assert.ok(D.lessons.count('D3.2', f.id, base) > 0, f.id);
+  }
 });
 
 test('every exercise mode has items, and ids are unique across the whole lesson', () => {

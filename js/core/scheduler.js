@@ -60,6 +60,8 @@
   }
 
   const RECENT_VERBS = 8;
+  // A form answered right does not come back for a day while the pool has others.
+  const COOLDOWN_MS = 24 * 60 * MIN;
 
   // Never the same item twice running, no resting verb while the pool has awake ones, and no verb from the
   // recent window (newest last) while the pool has others. A small pool drops the oldest verbs from the window
@@ -79,6 +81,11 @@
       const resting = restingVerbs(items, now);
       const awake = candidates.filter((p) => !resting.has(p.verb.inf));
       if (awake.length) candidates = awake;
+      const cool = candidates.filter((p) => {
+        const e = items[p.key];
+        return !(e && e.seen && e.box > 0 && now < e.last + COOLDOWN_MS);
+      });
+      if (cool.length) candidates = cool;
     }
     for (let from = 0; from < recent.length; from += 1) {
       const avoid = new Set(recent.slice(from));
@@ -97,5 +104,5 @@
     return candidates[candidates.length - 1];
   }
 
-  D.scheduler = { WEIGHTS, UNSEEN, PLAIN, REST_MS, RECENT_VERBS, itemKey, buildPool, weightOf, restingVerbs, pick };
+  D.scheduler = { WEIGHTS, UNSEEN, PLAIN, REST_MS, RECENT_VERBS, COOLDOWN_MS, itemKey, buildPool, weightOf, restingVerbs, pick };
 })(typeof window !== 'undefined' ? window : globalThis);

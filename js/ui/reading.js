@@ -2,7 +2,7 @@
   'use strict';
   const D = (root.Drill = root.Drill || {});
 
-  const KIND_NAMES = { mc: 'comprensión', tf: 'cierto o falso', vocab: 'vocabulario', ref: 'pronombre' };
+  const KIND_NAMES = { mc: 'comprensión', tf: 'cierto o falso', vocab: 'vocabulario', ref: 'pronombre', tiempo: 'tiempo verbal', gram: 'gramática' };
   const CORRECT_DELAY_MS = 950;
   const RING_R = 42;
 
@@ -39,7 +39,7 @@
       const article = node('article', 'passage');
       article.lang = 'es';
       let p = node('p');
-      for (const part of D.L2.parseReading(r.text)) {
+      for (const part of D.lessons.parseReading(r.text)) {
         if (part.type === 'break') {
           article.appendChild(p);
           p = node('p');
@@ -85,7 +85,8 @@
 
     function mount(id) {
       clearTimeout(timer);
-      reading = D.L2.readings.find((r) => r.id === id) || D.L2.readings[0];
+      const all = D.lessons.readings();
+      reading = all.find((r) => r.id === id) || all[0];
       index = 0;
       results = [];
       const head = node('header', 'read-head');
@@ -226,8 +227,9 @@
       const again = node('button', 'btn btn-ghost', 'otra vez');
       again.type = 'button';
       again.addEventListener('click', () => mount(reading.id));
-      const i = D.L2.readings.indexOf(reading);
-      const nextR = D.L2.readings[(i + 1) % D.L2.readings.length];
+      const all = D.lessons.readings();
+      const i = all.indexOf(reading);
+      const nextR = all[(i + 1) % all.length];
       const next = node('button', 'btn', 'siguiente lectura');
       next.type = 'button';
       next.addEventListener('click', () => onPick(nextR.id));

@@ -7,8 +7,12 @@
   const BOOKS = ['all', 'D1', 'D2', 'D3'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } };
   }
+
+  const LESSON = /^D[123]\.\d+$/;
+  // The Lección 2 tabs (vocab, pronombres, gustar, mezcla) became one lesson: D3.2.
+  const OLD_L2 = ['vocab', 'pronombres', 'gustar', 'mezcla'];
 
   function isCount(n) {
     return Number.isInteger(n) && n >= 0;
@@ -34,7 +38,6 @@
       if (BOOKS.includes(s.book)) out.settings.book = s.book;
       if (Array.isArray(s.off)) out.settings.off = s.off.filter((c) => typeof c === 'string');
       if (typeof s.mode === 'string' && s.mode) out.settings.mode = s.mode;
-      // Unticked filters per exercise mode: { vocab: ['deportes'], ... }.
       if (typeof s.reading === 'string') out.settings.reading = s.reading;
       // Last score per reading: { entradas: { r: 5, t: 7 } }.
       if (s.scores && typeof s.scores === 'object' && !Array.isArray(s.scores)) {
@@ -42,11 +45,22 @@
           if (sc && isCount(sc.r) && isCount(sc.t) && sc.r <= sc.t) out.settings.scores[id] = { r: sc.r, t: sc.t };
         }
       }
+      // Unticked filters per lesson ('D3.2': ['deportes', 'od']) and for the general mode.
       if (s.ex && typeof s.ex === 'object' && !Array.isArray(s.ex)) {
-        for (const [mode, list] of Object.entries(s.ex)) {
-          if (Array.isArray(list)) out.settings.ex[mode] = list.filter((c) => typeof c === 'string');
+        for (const [key, list] of Object.entries(s.ex)) {
+          if (Array.isArray(list)) out.settings.ex[key] = list.filter((c) => typeof c === 'string');
         }
       }
+      if (typeof s.lesson === 'string' && LESSON.test(s.lesson)) out.settings.lesson = s.lesson;
+      if (typeof s.upto === 'string' && LESSON.test(s.upto)) out.settings.upto = s.upto;
+      if (typeof s.focus === 'string' && (s.focus === '' || LESSON.test(s.focus))) out.settings.focus = s.focus;
+      if (OLD_L2.includes(out.settings.mode)) {
+        out.settings.mode = 'leccion';
+        out.settings.lesson = 'D3.2';
+      }
+      const old = OLD_L2.flatMap((m) => out.settings.ex[m] || []);
+      if (old.length && !out.settings.ex['D3.2']) out.settings.ex['D3.2'] = Array.from(new Set(old));
+      for (const m of OLD_L2) delete out.settings.ex[m];
     }
     return out;
   }

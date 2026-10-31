@@ -130,7 +130,9 @@ test('an item weight scales how often it comes up', () => {
   const heavy = typed('heavy', ['lo']);
   const light = { ...typed('light', ['la']), weight: 0.05 };
   const others = ['a', 'b', 'c', 'd', 'e'].map((id) => typed(id, ['los']));
-  const deck = D.createDeck({ items: () => [heavy, light, ...others], store: memory(), rng: mulberry32(11), now: () => 1 });
+  // A day passes between answers, so nothing is cooling down and only the weights decide.
+  let t = 0;
+  const deck = D.createDeck({ items: () => [heavy, light, ...others], store: memory(), rng: mulberry32(11), now: () => (t += D.exercise.COOLDOWN_MS) });
   const n = { heavy: 0, light: 0 };
   for (let i = 0; i < 700; i += 1) {
     const p = deck.next();
@@ -138,4 +140,50 @@ test('an item weight scales how often it comes up', () => {
     deck.answer(p, p.item.answers[0]);
   }
   assert.ok(n.heavy > n.light * 3, JSON.stringify(n));
+});
+
+test('an item answered right does not come back within a day while others are waiting', () => {
+  const items = Array.from({ length: 30 }, (_, i) => typed(`i${i}`, ['lo']));
+  let t = 0;
+  const deck = D.createDeck({ items: () => items, store: memory(), rng: mulberry32(3), now: () => t });
+  const seen = new Set();
+  for (let i = 0; i < 30; i += 1) {
+    t += 60 * 1000;
+    const p = deck.next();
+    assert.ok(!seen.has(p.item.id), `${p.item.id} came back within a day`);
+    seen.add(p.item.id);
+    deck.answer(p, 'lo');
+  }
+  assert.equal(deck.fresh(), 0);
+  t += D.exercise.COOLDOWN_MS;
+  assert.equal(deck.fresh(), 30);
+});
+
+test('a missed item is not held back: it returns as a retry', () => {
+  const items = Array.from({ length: 8 }, (_, i) => typed(`i${i}`, ['lo']));
+  let t = 0;
+  const deck = D.createDeck({ items: () => items, store: memory(), rng: mulberry32(5), now: () => (t += 1000) });
+  const first = deck.next();
+  deck.answer(first, 'nada');
+  const ids = [];
+  for (let i = 0; i < 4; i += 1) {
+    const p = deck.next();
+    ids.push(p.item.id);
+    deck.answer(p, 'lo');
+  }
+  assert.ok(ids.includes(first.item.id));
+});
+
+test('when the whole pool is cooling down, the longest-rested items come back first', () => {
+  const items = Array.from({ length: 8 }, (_, i) => typed(`i${i}`, ['lo']));
+  let t = 0;
+  const deck = D.createDeck({ items: () => items, store: memory(), rng: mulberry32(9), now: () => (t += 1000) });
+  const order = [];
+  for (let i = 0; i < 8; i += 1) {
+    const p = deck.next();
+    order.push(p.item.id);
+    deck.answer(p, 'lo');
+  }
+  const p = deck.next();
+  assert.ok(order.slice(0, 2).includes(p.item.id), `${p.item.id} is not among the oldest`);
 });

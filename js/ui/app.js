@@ -21,8 +21,17 @@
   const settings = () => store.state().settings;
   const session = D.createSession({ verbs: D.verbs, tenses: D.tenses, store });
   const decks = {};
-  const deckFor = (mode) =>
-    decks[mode] || (decks[mode] = D.createDeck({ items: () => D.L2.items(mode, settings()), store }));
+  const lessonId = () => (D.lessons.get(settings().lesson) ? settings().lesson : D.lessons.list()[0].id);
+  // One deck per lesson (its stats are that lesson's), and one for the general mode.
+  function deckFor(mode) {
+    const key = mode === 'general' ? 'general' : `L:${lessonId()}`;
+    if (!decks[key]) {
+      const id = lessonId();
+      const items = mode === 'general' ? () => D.lessons.general(settings()) : () => D.lessons.items(id, settings());
+      decks[key] = D.createDeck({ items, store });
+    }
+    return decks[key];
+  }
 
   const el = {
     app: $('app'), side: $('side'), main: $('main'), menu: $('menu'), close: $('close'), scrim: $('scrim'),
@@ -37,8 +46,7 @@
   };
 
   const MODE_IDS = D.MODES.map((m) => m.id);
-  const MODE_NAMES = Object.fromEntries(D.MODES.map((m) => [m.id, m.name]));
-  const isExercise = (m) => m !== 'conjugar' && m !== 'lectura';
+  const isExercise = (m) => m === 'leccion' || m === 'general';
 
   let appMode = MODE_IDS.includes(settings().mode) ? settings().mode : 'conjugar';
   let prompt = null;
@@ -63,6 +71,8 @@
     syncRail();
     reading.mount(id);
   });
+  const readings = () => D.lessons.readings();
+  const firstReading = () => (readings().some((r) => r.id === settings().reading) ? settings().reading : readings()[0].id);
 
   const engine = () => (appMode === 'conjugar' ? session : appMode === 'lectura' ? reading : deckFor(appMode));
 
@@ -74,7 +84,8 @@
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
   const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
-  const GROUP_NAMES = Object.fromEntries(D.L2.VOCAB_GROUPS.map((g) => [g.id, g.name]));
+  const BOOK_TITLES = { D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
+  const lessonLabel = (l) => `${l.id.slice(1)} · ${l.title}`;
   const HINTS = { rewrite: 'reescribe', en: 'traduce' };
 
   function announce(text) {
@@ -205,51 +216,114 @@
     el.strict.addEventListener('change', () => store.setSetting('strictAccents', el.strict.checked));
   }
 
-  function exOff(mode) {
-    return (settings().ex || {})[mode] || [];
+  function exOff(key) {
+    return (settings().ex || {})[key] || [];
   }
 
-  function toggleEx(mode, id) {
+  function toggleEx(key, id) {
     const ex = { ...(settings().ex || {}) };
-    const set = new Set(ex[mode] || []);
+    const set = new Set(ex[key] || []);
     if (set.has(id)) set.delete(id);
     else set.add(id);
-    ex[mode] = Array.from(set);
+    ex[key] = Array.from(set);
     store.setSetting('ex', ex);
   }
 
-  // The settings of the active mode: filter checkboxes for exercises, the list of passages for lectura.
+  // A labelled drop-down of lessons, grouped by book. extra puts a first option before them.
+  function lessonPicker(name, value, lessons, onPick, extra) {
+    const row = node('label', 'pick');
+    row.appendChild(node('span', 'group-h', name));
+    const wrap = node('span', 'pick-box');
+    const select = node('select', 'pick-select');
+    select.dataset.name = name;
+    if (extra) {
+      const o = node('option', null, extra.label);
+      o.value = extra.value;
+      select.appendChild(o);
+    }
+    for (const book of ['D1', 'D2', 'D3']) {
+      const inBook = lessons.filter((l) => l.book === book);
+      if (!inBook.length) continue;
+      const group = node('optgroup');
+      group.label = BOOK_TITLES[book];
+      for (const l of inBook) {
+        const o = node('option', null, lessonLabel(l));
+        o.value = l.id;
+        group.appendChild(o);
+      }
+      select.appendChild(group);
+    }
+    select.value = value;
+    select.addEventListener('change', () => {
+      onPick(select.value);
+      // The rail was rebuilt: keep the keyboard on the same drop-down.
+      const again = el.exGroups.querySelector(`select[data-name="${name}"]`);
+      if (again && again !== select) again.focus({ preventScroll: true });
+    });
+    wrap.appendChild(select);
+    row.appendChild(wrap);
+    return row;
+  }
+
+  function filterSet(title, key, items) {
+    const set = node('fieldset', 'group');
+    set.appendChild(node('legend', 'group-h', title));
+    for (const f of items) {
+      const row = option({ type: 'checkbox', value: f.id, label: f.name, example: f.example });
+      const input = row.querySelector('input');
+      input.dataset.key = key;
+      input.addEventListener('change', () => changed(() => toggleEx(key, f.id)));
+      set.appendChild(row);
+    }
+    return set;
+  }
+
+  // The settings of the active mode: the lesson and its filters, the general range and focus, or the passages.
   function buildModeRail() {
     const parts = [];
-    const modes = appMode === 'mezcla' ? ['vocab', 'pronombres', 'gustar'] : isExercise(appMode) ? [appMode] : [];
-    for (const m of modes) {
-      for (const group of D.L2.filters(m)) {
+    const all = D.lessons.list();
+    if (appMode === 'leccion') {
+      parts.push(lessonPicker('lección', lessonId(), all, (id) => {
+        store.setSetting('lesson', id);
+        buildModeRail();
+        changed(() => {});
+      }));
+      for (const group of D.lessons.filters(lessonId())) parts.push(filterSet(group.name, lessonId(), group.items));
+    }
+    if (appMode === 'general') {
+      const st = settings();
+      const upto = D.lessons.get(st.upto) ? st.upto : all[all.length - 1].id;
+      parts.push(lessonPicker('hasta', upto, all, (id) => {
+        store.setSetting('upto', id);
+        if (st.focus && D.lessons.order(st.focus) > D.lessons.order(id)) store.setSetting('focus', '');
+        buildModeRail();
+        changed(() => {});
+      }));
+      const reach = all.filter((l) => D.lessons.order(l.id) <= D.lessons.order(upto));
+      parts.push(lessonPicker('foco', st.focus || '', reach, (id) => {
+        store.setSetting('focus', id);
+        changed(() => {});
+      }, { value: '', label: 'ninguno · todo igual' }));
+      parts.push(filterSet('ejercicio', 'general', D.lessons.GENERAL_FILTERS));
+    }
+    if (appMode === 'lectura') {
+      for (const l of all) {
+        const list = readings().filter((r) => r.lesson === l.id);
+        if (!list.length) continue;
         const set = node('fieldset', 'group');
-        set.appendChild(node('legend', 'group-h', appMode === 'mezcla' ? `${MODE_NAMES[m]} · ${group.name}` : group.name));
-        for (const f of group.items) {
-          const row = option({ type: 'checkbox', value: f.id, label: f.name, example: f.example });
-          const input = row.querySelector('input');
-          input.dataset.mode = m;
-          input.addEventListener('change', () => changed(() => toggleEx(m, f.id)));
+        set.appendChild(node('legend', 'group-h', `lectura · ${l.id.slice(1)}`));
+        for (const r of list) {
+          const row = option({ type: 'radio', name: 'reading', value: r.id, label: r.title, example: r.tag });
+          row.querySelector('input').addEventListener('change', () => {
+            store.setSetting('reading', r.id);
+            syncRail();
+            reading.mount(r.id);
+            if (drawerOpen()) closeRail();
+          });
           set.appendChild(row);
         }
         parts.push(set);
       }
-    }
-    if (appMode === 'lectura') {
-      const set = node('fieldset', 'group');
-      set.appendChild(node('legend', 'group-h', 'lectura'));
-      for (const r of D.L2.readings) {
-        const row = option({ type: 'radio', name: 'reading', value: r.id, label: r.title, example: r.tag });
-        row.querySelector('input').addEventListener('change', () => {
-          store.setSetting('reading', r.id);
-          syncRail();
-          reading.mount(r.id);
-          if (drawerOpen()) closeRail();
-        });
-        set.appendChild(row);
-      }
-      parts.push(set);
     }
     el.exGroups.replaceChildren(...parts);
   }
@@ -265,6 +339,7 @@
   function refresh() {
     settingsDirty = false;
     if (appMode === 'lectura') return;
+    renderStats();
     if (mode !== 'correct') nextPrompt(false);
   }
 
@@ -300,23 +375,35 @@
     }
     if (appMode === 'lectura') {
       const sc = reading.scores();
-      const current = st.reading || D.L2.readings[0].id;
+      const current = firstReading();
       for (const input of el.exGroups.querySelectorAll('input')) {
         input.checked = input.value === current;
         const s = sc[input.value];
         input.closest('.opt').querySelector('.opt-count').textContent = s ? `${s.r}/${s.t}` : '–';
       }
-      poolText(D.L2.readings.length, 'lectura', 'lecturas');
+      poolText(readings().length, 'lectura', 'lecturas');
       return;
     }
-    for (const input of el.exGroups.querySelectorAll('input')) {
-      const m = input.dataset.mode;
-      input.checked = !exOff(m).includes(input.value);
-      const n = D.L2.count(m, input.value, st);
+    const general = appMode === 'general';
+    const pool = general ? D.lessons.general(st) : D.lessons.items(lessonId(), st);
+    for (const input of el.exGroups.querySelectorAll('input[type="checkbox"]')) {
+      const key = input.dataset.key;
+      input.checked = !exOff(key).includes(input.value);
+      const n = general
+        ? D.lessons.general({ ...st, ex: { ...st.ex, general: D.lessons.GENERAL_FILTERS.map((f) => f.id).filter((id) => id !== input.value) } }).length
+        : D.lessons.count(key, input.value, st);
       input.disabled = n === 0;
       input.closest('.opt').querySelector('.opt-count').textContent = String(n);
     }
-    poolText(D.L2.items(appMode, st).length, 'ejercicio', 'ejercicios');
+    poolText(pool.length, 'ejercicio', 'ejercicios');
+    if (pool.length) el.pool.appendChild(node('span', 'pool-fresh'));
+    renderFresh();
+  }
+
+  // What is left for today: exercises answered right in the last day wait until tomorrow.
+  function renderFresh() {
+    const out = el.pool.querySelector('.pool-fresh');
+    if (out && isExercise(appMode)) out.textContent = `${deckFor(appMode).fresh()} para hoy`;
   }
 
   /* ---------- drawer (narrow screens) ---------- */
@@ -418,7 +505,7 @@
     if (lectura) {
       prompt = null;
       hideTable();
-      reading.mount(settings().reading || D.L2.readings[0].id);
+      reading.mount(firstReading());
       return;
     }
     prompt = null;
@@ -478,6 +565,7 @@
     el.acc.textContent = acc === null ? '' : String(acc);
     el.count.textContent = String(e.count());
     if (ok === undefined) return;
+    renderFresh();
     if (ok) motion.pop(el.streakBox, streak % MILESTONE === 0 ? 1.32 : 1.16);
     else motion.shake(el.streakBox, 5);
   }
@@ -667,8 +755,8 @@
     el.stage.dataset.show = it.big ? 'big' : 'sentence';
     flag(p);
 
-    const skill = D.L2.skillName(it);
-    el.person.textContent = appMode === 'mezcla' ? `${MODE_NAMES[it.mode]} · ${skill}` : skill;
+    const skill = D.lessons.skillName(it);
+    el.person.textContent = appMode === 'general' ? `${it.cat === 'mix' ? 'repaso' : it.lesson.slice(1)} · ${skill}` : skill;
     const hint = HINTS[it.form];
     el.hint.hidden = !hint;
     el.hint.textContent = hint || '';
@@ -683,7 +771,7 @@
       const span = words.length > 1 ? Math.max(...words.map((x) => x.length), Math.ceil(it.big.length / 2)) : it.big.length;
       el.verb.style.setProperty('--verb-scale', String(verbScale(span)));
       el.prompt.replaceChildren();
-      el.gloss.textContent = it.group ? GROUP_NAMES[it.group] : '';
+      el.gloss.textContent = it.group ? D.lessons.groupName(it) : '';
     } else {
       el.verb.replaceChildren();
       el.verb.removeAttribute('aria-label');

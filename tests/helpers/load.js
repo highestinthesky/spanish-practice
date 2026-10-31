@@ -13,6 +13,7 @@ const SCRIPT_ORDER = [
   'js/core/session.js',
   'js/core/guard.js',
   'js/core/deck.js',
+  'js/core/lessons.js',
   'js/core/conjugate.js',
   'js/data/verb.js',
   'js/tenses/present.js',
@@ -27,7 +28,13 @@ const SCRIPT_ORDER = [
   'js/data/l2-pronouns.js',
   'js/data/l2-gustar.js',
   'js/data/l2-readings.js',
+  'js/data/l2-reflexives.js',
   'js/data/l2.js',
+  'js/data/lessons/d1.js',
+  'js/data/lessons/d2.js',
+  'js/data/lessons/d3-1.js',
+  'js/data/lessons/d3-3.js',
+  'js/data/lessons/general.js',
 ];
 // The UI: motion and the reading view, then the app that wires them up.
 const UI_SCRIPTS = ['js/ui/motion.js', 'js/ui/reading.js', 'js/ui/app.js'];
