@@ -207,11 +207,10 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 
 .scrim { display: none; }
 
-/* settings that belong to one mode only */
-.app:not([data-mode="conjugar"]) #book,
-.app:not([data-mode="conjugar"]) #types { display: none; }
-.app[data-mode="conjugar"] .ex-groups { display: none; }
-.ex-groups { flex: 1; display: grid; align-content: start; gap: var(--space-lg); }
+/* settings that belong to one mode only: one .rail per mode, all of them in the page */
+.rail { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-lg); }
+.lesson-filters { display: grid; align-content: start; gap: var(--space-lg); }
+.rail[hidden], .lesson-filters[hidden] { display: none; }
 .opt-radio { border-radius: var(--radius-pill); }
 .opt-input:checked + .opt-radio::after {
   width: 8px; height: 8px; margin: 0; border: 0; border-radius: var(--radius-pill);

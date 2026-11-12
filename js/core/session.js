@@ -33,13 +33,21 @@
     }
     const off = () => settings().off || [];
 
-    const mixed = () => settings().tense === MIX && tenses.all().length > 0;
-    const tense = () => tenses.get(settings().tense) || tenses.all()[0] || null;
-    const inPlay = () => (mixed() ? tenses.all() : [tense()].filter(Boolean));
+    // The ticked tenses. Before the tense menu there was one tense, or 'mix' for all of them.
+    const chosen = () => {
+      const list = settings().tenses;
+      if (Array.isArray(list)) return list;
+      const old = settings().tense;
+      if (old === MIX) return tenses.all().map((t) => t.id);
+      return [(tenses.get(old) || tenses.all()[0] || {}).id].filter(Boolean);
+    };
+    const inPlay = () => tenses.all().filter((t) => chosen().includes(t.id));
+    // Menu counts look past the tense choice when nothing is ticked, so the other options never read 0.
+    const counted = () => (inPlay().length ? inPlay() : tenses.all());
 
-    function poolFor({ book = settings().book, unticked = off(), chips = [] } = {}) {
+    function poolFor({ book = settings().book, unticked = off(), chips = [], over = inPlay() } = {}) {
       const pool = [];
-      for (const t of inPlay()) {
+      for (const t of over) {
         pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, off: unticked, vosotros: settings().vosotros }));
       }
       return pool;
@@ -66,8 +74,20 @@
 
     return {
       settings,
-      tense,
-      mixed,
+      tensesInPlay: inPlay,
+      tenseOn: (id) => chosen().includes(id),
+      toggleTense(id) {
+        if (!tenses.get(id)) return;
+        const set = new Set(chosen());
+        if (set.has(id)) set.delete(id);
+        else set.add(id);
+        store.setSetting('tenses', tenses.all().map((t) => t.id).filter((x) => set.has(x)));
+      },
+      // Verbs of the chosen book and types that this tense would drill.
+      tenseCount: (id) => {
+        const t = tenses.get(id);
+        return t ? distinctVerbs(poolFor({ over: [t] })) : 0;
+      },
       // Every type starts ticked; off lists the unticked ones.
       typeOn: (tag) => !off().includes(tag),
       toggleType(tag) {
@@ -85,13 +105,10 @@
       // Distinct verbs in the pool being drilled, and per-option counts for the menu.
       poolSize: () => distinctVerbs(activePool()),
       // How many verbs of the chosen book have this type, whatever else is ticked.
-      countFor: (tag) => distinctVerbs(poolFor({ chips: [tag], unticked: [] })),
-      bookCount: (book) => distinctVerbs(poolFor({ book, unticked: [] })),
+      countFor: (tag) => distinctVerbs(poolFor({ chips: [tag], unticked: [], over: counted() })),
+      bookCount: (book) => distinctVerbs(poolFor({ book, unticked: [], over: counted() })),
       setVosotros(on) {
         store.setSetting('vosotros', Boolean(on));
-      },
-      setTense(id) {
-        if (id === MIX || tenses.get(id)) store.setSetting('tense', id);
       },
       next() {
         if (!inPlay().length) return null;

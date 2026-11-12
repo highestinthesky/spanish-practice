@@ -39,19 +39,42 @@ test('all ids the UI needs exist in the page', () => {
   for (const id of ['app', 'side', 'main', 'menu', 'close', 'scrim', 'book', 'types', 'vos', 'pool',
     'streak-box', 'streak', 'best', 'acc', 'count', 'stage', 'card', 'person', 'flag', 'verb', 'gloss',
     'form', 'field', 'input', 'echo', 'submit', 'fix', 'right', 'next', 'keys', 'empty', 'burst', 'conj', 'live',
-    'modes', 'modes-ink', 'ex-groups', 'ambient', 'hint', 'prompt', 'choices', 'why', 'read', 'strict', 'nudge']) {
+    'modes', 'modes-ink', 'tenses', 'lesson', 'upto', 'focus', 'ambient', 'hint', 'prompt', 'choices', 'why', 'read', 'strict', 'nudge']) {
     assert.ok(html.includes(`id="${id}"`), id);
   }
 });
 
-test('the page has no prose: the only hard-coded words are the wordmark and the rail labels', () => {
-  const body = html.slice(html.indexOf('<body>'), html.indexOf('<script'));
+test('outside the generated menus the page has no prose: just the wordmark and the two switches', () => {
+  const body = html.slice(html.indexOf('<body>'), html.indexOf('<script')).replace(/<!-- menu:(\w+) [\s\S]*?<!-- \/menu:\1 -->/g, '');
   const text = body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  assert.equal(text, 'repaso libro tipo de verbo vosotros acentos estrictos');
+  assert.equal(text, 'repaso vosotros acentos estrictos');
+});
+
+test('index.html carries the menus written from the data (run npm run menu when this fails)', () => {
+  const menu = require('../tools/menu');
+  assert.equal(html, menu.apply(html, load()));
+});
+
+test('every menu is in the page markup: tabs, tense, book and type boxes, lesson drop-downs, filters, readings', () => {
+  const D = load();
+  for (const m of D.MODES) assert.match(html, new RegExp(`<button class="mode" id="tab-${m.id}"[^>]*role="tab"`));
+  for (const t of D.tenses.all()) assert.ok(html.includes(`type="checkbox" name="tense" value="${t.id}"`), t.id);
+  for (const tag of D.TYPE_TAGS) assert.ok(html.includes(`name="type" value="${tag}"`), tag);
+  for (const id of ['lesson', 'upto', 'focus']) assert.match(html, new RegExp(`<select class="pick-select" id="${id}">`));
+  for (const l of D.lessons.list()) {
+    assert.ok(html.includes(`<option value="${l.id}">`), l.id);
+    for (const g of D.lessons.filters(l.id)) for (const f of g.items) assert.ok(html.includes(`value="${f.id}" data-key="${l.id}"`), `${l.id} ${f.id}`);
+  }
+  for (const r of D.lessons.readings()) assert.ok(html.includes(`name="reading" value="${r.id}"`), r.id);
+  // app.js wires these up; it never creates a menu control itself.
+  const app = fs.readFileSync(path.join(load.ROOT, 'js/ui/app.js'), 'utf8');
+  assert.ok(!/createElement\(['"](select|option|optgroup|fieldset|input)/.test(app));
+  assert.ok(!/node\(['"](select|option|optgroup|fieldset|input|label|legend)['"]/.test(app));
 });
 
 test('the settings rail uses real form controls: a labelled drawer button, fieldsets, a vosotros switch', () => {
   assert.match(html, /id="menu"[^>]*aria-label="ajustes"[^>]*aria-controls="side"[^>]*aria-expanded="false"/);
+  assert.match(html, /<fieldset class="group" id="tenses">/);
   assert.match(html, /<fieldset class="group" id="book">/);
   assert.match(html, /<fieldset class="group group-grow" id="types">/);
   assert.match(html, /<input[^>]*id="vos"[^>]*type="checkbox"[^>]*role="switch"/);

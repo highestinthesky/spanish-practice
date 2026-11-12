@@ -2,6 +2,7 @@
   "name": "conjugacion",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "menu": "node tools/menu.js"
   }
 }

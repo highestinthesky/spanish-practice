@@ -35,7 +35,7 @@
 
   const el = {
     app: $('app'), side: $('side'), main: $('main'), menu: $('menu'), close: $('close'), scrim: $('scrim'),
-    book: $('book'), types: $('types'), exGroups: $('ex-groups'), vos: $('vos'), strict: $('strict'), pool: $('pool'),
+    tenses: $('tenses'), book: $('book'), types: $('types'), lesson: $('lesson'), upto: $('upto'), focus: $('focus'), vos: $('vos'), strict: $('strict'), pool: $('pool'),
     modes: $('modes'), ink: $('modes-ink'), ambient: $('ambient'),
     streakBox: $('streak-box'), streak: $('streak'), best: $('best'), acc: $('acc'), count: $('count'),
     stage: $('stage'), card: $('card'), person: $('person'), hint: $('hint'), flag: $('flag'), verb: $('verb'),
@@ -83,9 +83,6 @@
   // Row labels of the conjugation table.
   const SHORT = ['yo', 'tú', 'él', 'nosotros', 'vosotros', 'ellos'];
   const COMMAND = [null, 'tú', 'Ud.', 'nosotros', 'vosotros', 'Uds.'];
-  const BOOK_NAMES = { all: 'todos', D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
-  const BOOK_TITLES = { D1: 'Descubre 1', D2: 'Descubre 2', D3: 'Descubre 3' };
-  const lessonLabel = (l) => `${l.id.slice(1)} · ${l.title}`;
   const HINTS = { rewrite: 'reescribe', en: 'traduce' };
 
   function announce(text) {
@@ -160,57 +157,45 @@
 
   /* ---------- side rail ---------- */
 
-  // One row of the rail: a real input, a drawn box, the name, an optional example, and a live count.
-  function option({ type, name, value, label, example }) {
-    const row = node('label', 'opt');
-    const input = node('input', 'opt-input');
-    input.type = type;
-    if (name) input.name = name;
-    input.value = value;
-    const box = node('span', type === 'radio' ? 'opt-box opt-radio' : 'opt-box');
-    box.setAttribute('aria-hidden', 'true');
-    row.append(input, box, node('span', 'opt-name', label));
-    if (example) row.appendChild(node('span', 'opt-ex', example));
-    row.appendChild(node('span', 'opt-count'));
-    return row;
-  }
+  // Every menu is in index.html (written by tools/menu.js). This wires them up and shows the active mode's.
+  const rails = Array.from(el.side.querySelectorAll('.rail'));
+  const railFor = (m) => rails.find((r) => r.dataset.rail === m);
+  const lessonBoxes = Array.from(el.side.querySelectorAll('.lesson-filters'));
+  const countOf = (input) => input.closest('.opt').querySelector('.opt-count');
+  const uptoId = () => {
+    const all = D.lessons.list();
+    return D.lessons.get(settings().upto) ? settings().upto : all[all.length - 1].id;
+  };
 
-  function buildRail() {
-    const seg = node('div', 'seg');
-    for (const book of D.BOOKS) {
-      const row = node('label', 'seg-opt');
-      const input = node('input', 'opt-input');
-      input.type = 'radio';
-      input.name = 'book';
-      input.value = book;
-      input.addEventListener('change', () => changed(() => session.setBook(book)));
-      row.append(input, node('span', null, BOOK_NAMES[book]), node('span', 'seg-n'));
-      seg.appendChild(row);
+  function bindRail() {
+    for (const input of el.tenses.querySelectorAll('input')) {
+      input.addEventListener('change', () => changed(() => session.toggleTense(input.value)));
     }
-    el.book.appendChild(seg);
-
-    const top = node('div', 'types-top');
-    const all = node('label', 'all');
-    const allInput = node('input', 'opt-input');
-    allInput.type = 'checkbox';
-    allInput.value = '';
-    allInput.addEventListener('change', () => changed(() => session.setAllTypes(allInput.checked)));
-    all.append(allInput, node('span', null, 'todos'), node('span', 'all-n'));
-    top.appendChild(all);
-    el.types.appendChild(top);
-
-    for (const group of D.TYPE_GROUPS) {
-      const box = node('div', 'type-group');
-      box.appendChild(node('p', 'type-group-name', group.name));
-      for (const tag of group.tags) {
-        const info = D.TYPE_INFO[tag];
-        const row = option({ type: 'checkbox', value: tag, label: info.name, example: info.example });
-        row.querySelector('input').addEventListener('change', () => changed(() => session.toggleType(tag)));
-        box.appendChild(row);
-      }
-      el.types.appendChild(box);
+    for (const input of el.book.querySelectorAll('input')) {
+      input.addEventListener('change', () => changed(() => session.setBook(input.value)));
     }
-
+    for (const input of el.types.querySelectorAll('input')) {
+      // The value-less box is "todos".
+      input.addEventListener('change', () => changed(() => (input.value ? session.toggleType(input.value) : session.setAllTypes(input.checked))));
+    }
+    for (const input of el.side.querySelectorAll('input[data-key]')) {
+      input.addEventListener('change', () => changed(() => toggleEx(input.dataset.key, input.value)));
+    }
+    el.lesson.addEventListener('change', () => changed(() => store.setSetting('lesson', el.lesson.value)));
+    el.upto.addEventListener('change', () => changed(() => {
+      store.setSetting('upto', el.upto.value);
+      const focus = settings().focus;
+      if (focus && D.lessons.order(focus) > D.lessons.order(el.upto.value)) store.setSetting('focus', '');
+    }));
+    el.focus.addEventListener('change', () => changed(() => store.setSetting('focus', el.focus.value)));
+    for (const input of railFor('lectura').querySelectorAll('input')) {
+      input.addEventListener('change', () => {
+        store.setSetting('reading', input.value);
+        syncRail();
+        reading.mount(input.value);
+        if (drawerOpen()) closeRail();
+      });
+    }
     el.vos.addEventListener('change', () => changed(() => session.setVosotros(el.vos.checked)));
     // Grading only: the current question stays.
     el.strict.addEventListener('change', () => store.setSetting('strictAccents', el.strict.checked));
@@ -229,103 +214,10 @@
     store.setSetting('ex', ex);
   }
 
-  // A labelled drop-down of lessons, grouped by book. extra puts a first option before them.
-  function lessonPicker(name, value, lessons, onPick, extra) {
-    const row = node('label', 'pick');
-    row.appendChild(node('span', 'group-h', name));
-    const wrap = node('span', 'pick-box');
-    const select = node('select', 'pick-select');
-    select.dataset.name = name;
-    if (extra) {
-      const o = node('option', null, extra.label);
-      o.value = extra.value;
-      select.appendChild(o);
-    }
-    for (const book of ['D1', 'D2', 'D3']) {
-      const inBook = lessons.filter((l) => l.book === book);
-      if (!inBook.length) continue;
-      const group = node('optgroup');
-      group.label = BOOK_TITLES[book];
-      for (const l of inBook) {
-        const o = node('option', null, lessonLabel(l));
-        o.value = l.id;
-        group.appendChild(o);
-      }
-      select.appendChild(group);
-    }
-    select.value = value;
-    select.addEventListener('change', () => {
-      onPick(select.value);
-      // The rail was rebuilt: keep the keyboard on the same drop-down.
-      const again = el.exGroups.querySelector(`select[data-name="${name}"]`);
-      if (again && again !== select) again.focus({ preventScroll: true });
-    });
-    wrap.appendChild(select);
-    row.appendChild(wrap);
-    return row;
-  }
-
-  function filterSet(title, key, items) {
-    const set = node('fieldset', 'group');
-    set.appendChild(node('legend', 'group-h', title));
-    for (const f of items) {
-      const row = option({ type: 'checkbox', value: f.id, label: f.name, example: f.example });
-      const input = row.querySelector('input');
-      input.dataset.key = key;
-      input.addEventListener('change', () => changed(() => toggleEx(key, f.id)));
-      set.appendChild(row);
-    }
-    return set;
-  }
-
-  // The settings of the active mode: the lesson and its filters, the general range and focus, or the passages.
-  function buildModeRail() {
-    const parts = [];
-    const all = D.lessons.list();
-    if (appMode === 'leccion') {
-      parts.push(lessonPicker('lección', lessonId(), all, (id) => {
-        store.setSetting('lesson', id);
-        buildModeRail();
-        changed(() => {});
-      }));
-      for (const group of D.lessons.filters(lessonId())) parts.push(filterSet(group.name, lessonId(), group.items));
-    }
-    if (appMode === 'general') {
-      const st = settings();
-      const upto = D.lessons.get(st.upto) ? st.upto : all[all.length - 1].id;
-      parts.push(lessonPicker('hasta', upto, all, (id) => {
-        store.setSetting('upto', id);
-        if (st.focus && D.lessons.order(st.focus) > D.lessons.order(id)) store.setSetting('focus', '');
-        buildModeRail();
-        changed(() => {});
-      }));
-      const reach = all.filter((l) => D.lessons.order(l.id) <= D.lessons.order(upto));
-      parts.push(lessonPicker('foco', st.focus || '', reach, (id) => {
-        store.setSetting('focus', id);
-        changed(() => {});
-      }, { value: '', label: 'ninguno · todo igual' }));
-      parts.push(filterSet('ejercicio', 'general', D.lessons.GENERAL_FILTERS));
-    }
-    if (appMode === 'lectura') {
-      for (const l of all) {
-        const list = readings().filter((r) => r.lesson === l.id);
-        if (!list.length) continue;
-        const set = node('fieldset', 'group');
-        set.appendChild(node('legend', 'group-h', `lectura · ${l.id.slice(1)}`));
-        for (const r of list) {
-          const row = option({ type: 'radio', name: 'reading', value: r.id, label: r.title, example: r.tag });
-          row.querySelector('input').addEventListener('change', () => {
-            store.setSetting('reading', r.id);
-            syncRail();
-            reading.mount(r.id);
-            if (drawerOpen()) closeRail();
-          });
-          set.appendChild(row);
-        }
-        parts.push(set);
-      }
-    }
-    el.exGroups.replaceChildren(...parts);
+  // Shows the active mode's settings, and in lección only the chosen lesson's filters.
+  function showRail() {
+    for (const r of rails) r.hidden = r.dataset.rail !== appMode;
+    for (const box of lessonBoxes) box.hidden = box.dataset.lesson !== lessonId();
   }
 
   // On a wide screen a change takes effect at once; inside the drawer it waits until the drawer closes.
@@ -352,9 +244,14 @@
   // Inputs and counts always mirror the stored settings.
   function syncRail() {
     const st = settings();
+    showRail();
     el.vos.checked = st.vosotros;
     el.strict.checked = st.strictAccents;
     if (appMode === 'conjugar') {
+      for (const input of el.tenses.querySelectorAll('input')) {
+        input.checked = session.tenseOn(input.value);
+        countOf(input).textContent = String(session.tenseCount(input.value));
+      }
       for (const input of el.book.querySelectorAll('input')) {
         input.checked = input.value === st.book;
         input.closest('.seg-opt').querySelector('.seg-n').textContent = String(session.bookCount(input.value));
@@ -368,32 +265,45 @@
         const n = session.countFor(input.value);
         input.checked = session.typeOn(input.value);
         input.disabled = n === 0;
-        input.closest('.opt').querySelector('.opt-count').textContent = String(n);
+        countOf(input).textContent = String(n);
       }
       poolText(session.poolSize(), 'verbo', 'verbos');
+      if (!session.tensesInPlay().length) el.empty.textContent = 'elige un tiempo';
       return;
     }
     if (appMode === 'lectura') {
       const sc = reading.scores();
       const current = firstReading();
-      for (const input of el.exGroups.querySelectorAll('input')) {
+      for (const input of railFor('lectura').querySelectorAll('input')) {
         input.checked = input.value === current;
         const s = sc[input.value];
-        input.closest('.opt').querySelector('.opt-count').textContent = s ? `${s.r}/${s.t}` : '–';
+        countOf(input).textContent = s ? `${s.r}/${s.t}` : '–';
       }
       poolText(readings().length, 'lectura', 'lecturas');
       return;
     }
     const general = appMode === 'general';
+    let inputs;
+    if (general) {
+      const upto = uptoId();
+      el.upto.value = upto;
+      // foco only offers lessons up to hasta.
+      for (const o of el.focus.options) o.hidden = o.disabled = Boolean(o.value) && D.lessons.order(o.value) > D.lessons.order(upto);
+      el.focus.value = st.focus || '';
+      inputs = railFor('general').querySelectorAll('input[data-key]');
+    } else {
+      el.lesson.value = lessonId();
+      inputs = lessonBoxes.find((box) => !box.hidden).querySelectorAll('input[data-key]');
+    }
     const pool = general ? D.lessons.general(st) : D.lessons.items(lessonId(), st);
-    for (const input of el.exGroups.querySelectorAll('input[type="checkbox"]')) {
+    for (const input of inputs) {
       const key = input.dataset.key;
       input.checked = !exOff(key).includes(input.value);
       const n = general
         ? D.lessons.general({ ...st, ex: { ...st.ex, general: D.lessons.GENERAL_FILTERS.map((f) => f.id).filter((id) => id !== input.value) } }).length
         : D.lessons.count(key, input.value, st);
       input.disabled = n === 0;
-      input.closest('.opt').querySelector('.opt-count').textContent = String(n);
+      countOf(input).textContent = String(n);
     }
     poolText(pool.length, 'ejercicio', 'ejercicios');
     if (pool.length) el.pool.appendChild(node('span', 'pool-fresh'));
@@ -415,17 +325,20 @@
     el.main.inert = narrow.matches && drawerOpen();
   }
 
+  // First control on screen that matches: the hidden modes' menus are in the page too.
+  const firstShown = (sel) => Array.from(el.side.querySelectorAll(sel)).find((n) => n.offsetParent) || null;
+
   function openRail() {
     if (!narrow.matches) {
-      const first = el.side.querySelector('.group:not([hidden]) .opt-input:not(:disabled)');
-      if (first && first.offsetParent) first.focus();
+      const first = firstShown('.opt-input:not(:disabled), .pick-select');
+      if (first) first.focus();
       return;
     }
     el.app.dataset.drawer = 'open';
     el.menu.setAttribute('aria-expanded', 'true');
     syncInert();
-    const first = el.side.querySelector('.opt-input:checked');
-    if (first && first.offsetParent) first.focus({ preventScroll: true });
+    const first = firstShown('.opt-input:checked, .pick-select');
+    if (first) first.focus({ preventScroll: true });
   }
 
   function closeRail() {
@@ -439,17 +352,13 @@
 
   /* ---------- tabs ---------- */
 
-  function buildTabs() {
-    for (const m of D.MODES) {
-      const b = node('button', 'mode', m.name);
-      b.type = 'button';
-      b.id = `tab-${m.id}`;
-      b.dataset.mode = m.id;
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-controls', m.id === 'lectura' ? 'read' : 'stage');
-      b.addEventListener('click', () => switchMode(m.id, true));
+  // The tab buttons are in index.html; arrow keys, Home and End move between them.
+  function bindTabs() {
+    for (const b of el.modes.querySelectorAll('.mode')) {
+      const id = b.dataset.mode;
+      b.addEventListener('click', () => switchMode(id, true));
       b.addEventListener('keydown', (e) => {
-        const i = MODE_IDS.indexOf(m.id);
+        const i = MODE_IDS.indexOf(id);
         let to = null;
         if (e.key === 'ArrowRight') to = MODE_IDS[(i + 1) % MODE_IDS.length];
         if (e.key === 'ArrowLeft') to = MODE_IDS[(i - 1 + MODE_IDS.length) % MODE_IDS.length];
@@ -460,7 +369,6 @@
         switchMode(to, false);
         $(`tab-${to}`).focus();
       });
-      el.modes.appendChild(b);
     }
   }
 
@@ -499,7 +407,6 @@
     el.stage.setAttribute('aria-labelledby', `tab-${appMode}`);
     el.read.setAttribute('aria-labelledby', 'tab-lectura');
     syncTabs(first);
-    buildModeRail();
     syncRail();
     renderStats();
     if (lectura) {
@@ -721,7 +628,8 @@
     el.stage.dataset.kind = 'drill';
     el.stage.dataset.show = 'big';
     flag(p);
-    el.hint.hidden = true;
+    el.hint.hidden = false;
+    el.hint.textContent = p.tense.name;
     el.prompt.replaceChildren();
 
     const chars = letters(el.verb, p.verb.inf);
@@ -965,8 +873,8 @@
     else motion.ambient(el.ambient);
   });
 
-  buildTabs();
-  buildRail();
+  bindTabs();
+  bindRail();
   buildKeys();
   syncInert();
   applyMode(true, true);
