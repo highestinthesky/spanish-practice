@@ -8,6 +8,7 @@
     id: 'present',
     mark: 'pres',
     name: 'presente',
+  group: 'indicativo',
     persons: D.PERSONS,
     vosotrosIndex: 4,
   });

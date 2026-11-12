@@ -67,8 +67,10 @@ test('the regular baseline ignores every irregularity', () => {
 });
 
 test('tricky flags: regular verbs are plain, ser is irregular in every simple tense but the future', () => {
-  assert.deepEqual(byInf('hablar').tricky, { present: false });
-  assert.deepEqual(byInf('ser').tricky, { present: true });
+  for (const id of Object.keys(byInf('hablar').tricky)) assert.equal(byInf('hablar').tricky[id], false, id);
+  assert.equal(byInf('ser').tricky.present, true);
+  assert.equal(byInf('ser').tricky.preterite, true);
+  assert.equal(byInf('ser').tricky.future, false);
   const irr = D.irregularMap(byInf('ser'));
   assert.ok(irr.preterite.some(Boolean));
   assert.ok(!irr.future.some(Boolean));

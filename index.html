@@ -19,15 +19,572 @@
         <button class="close" id="close" type="button" aria-label="cerrar"></button>
       </div>
 
-      <fieldset class="group" id="book">
-        <legend class="group-h">libro</legend>
-      </fieldset>
-
-      <fieldset class="group group-grow" id="types">
-        <legend class="group-h">tipo de verbo</legend>
-      </fieldset>
-
-      <div class="ex-groups" id="ex-groups"></div>
+      <!-- menu:rail (written by tools/menu.js from the data: run npm run menu after changing lessons, tenses or verb types) -->
+      <div class="rail" id="rail-conjugar" data-rail="conjugar">
+        <fieldset class="group" id="tenses">
+          <legend class="group-h">tiempo</legend>
+          <div class="type-group">
+            <p class="type-group-name">indicativo</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">presente</span><span class="opt-ex">hablar → hablo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito</span><span class="opt-ex">hablar → hablé</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="imperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">imperfecto</span><span class="opt-ex">hablar → hablaba</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">futuro</span><span class="opt-ex">hablar → hablaré</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">condicional</span><span class="opt-ex">hablar → hablaría</span><span class="opt-count"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">compuestos</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="perfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito perfecto</span><span class="opt-ex">hablar → he hablado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="pluperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pluscuamperfecto</span><span class="opt-ex">hablar → había hablado</span><span class="opt-count"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">subjuntivo</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo presente</span><span class="opt-ex">hablar → hable</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="tense" value="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo imperfecto</span><span class="opt-ex">hablar → hablara</span><span class="opt-count"></span></label>
+          </div>
+        </fieldset>
+        <fieldset class="group" id="book">
+          <legend class="group-h">libro</legend>
+          <div class="seg">
+            <label class="seg-opt"><input class="opt-input" type="radio" name="book" value="all"><span>todos</span><span class="seg-n"></span></label>
+            <label class="seg-opt"><input class="opt-input" type="radio" name="book" value="D1"><span>Descubre 1</span><span class="seg-n"></span></label>
+            <label class="seg-opt"><input class="opt-input" type="radio" name="book" value="D2"><span>Descubre 2</span><span class="seg-n"></span></label>
+            <label class="seg-opt"><input class="opt-input" type="radio" name="book" value="D3"><span>Descubre 3</span><span class="seg-n"></span></label>
+          </div>
+        </fieldset>
+        <fieldset class="group group-grow" id="types">
+          <legend class="group-h">tipo de verbo</legend>
+          <div class="types-top">
+            <label class="all"><input class="opt-input" type="checkbox" value=""><span>todos</span><span class="all-n"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">cambio de raíz</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→ie"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → ie</span><span class="opt-ex">pensar → pienso</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="o→ue"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">o → ue</span><span class="opt-ex">poder → puedo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→i"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → i</span><span class="opt-ex">pedir → pido</span><span class="opt-count"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">yo irregular</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-go"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -go</span><span class="opt-ex">hacer → hago</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-zco"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -zco</span><span class="opt-ex">conocer → conozco</span><span class="opt-count"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">ortografía y acento</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-uir"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-uir + y</span><span class="opt-ex">construir → construyo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="í/ú"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">í / ú</span><span class="opt-ex">enviar → envío</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="spelling"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ortográfico</span><span class="opt-ex">escoger → escojo</span><span class="opt-count"></span></label>
+          </div>
+          <div class="type-group">
+            <p class="type-group-name">otros</p>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">irregular</span><span class="opt-ex">ser → soy</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablo</span><span class="opt-count"></span></label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="rail" id="rail-leccion" data-rail="leccion" hidden>
+        <label class="pick" for="lesson">
+          <span class="group-h">lección</span>
+          <span class="pick-box">
+            <select class="pick-select" id="lesson">
+              <optgroup label="Descubre 1">
+                <option value="D1.1">1.1 · Hola, ¿qué tal?</option>
+                <option value="D1.2">1.2 · En la clase</option>
+                <option value="D1.3">1.3 · La familia</option>
+                <option value="D1.4">1.4 · Los pasatiempos</option>
+                <option value="D1.5">1.5 · Las vacaciones</option>
+                <option value="D1.6">1.6 · ¡De compras!</option>
+                <option value="D1.7">1.7 · La rutina diaria</option>
+                <option value="D1.8">1.8 · La comida</option>
+                <option value="D1.9">1.9 · Las fiestas</option>
+              </optgroup>
+              <optgroup label="Descubre 2">
+                <option value="D2.1">2.1 · En el consultorio</option>
+                <option value="D2.2">2.2 · La tecnología</option>
+                <option value="D2.3">2.3 · La vivienda</option>
+                <option value="D2.4">2.4 · La naturaleza</option>
+                <option value="D2.5">2.5 · En la ciudad</option>
+                <option value="D2.6">2.6 · El bienestar</option>
+                <option value="D2.7">2.7 · El mundo del trabajo</option>
+                <option value="D2.8">2.8 · Un festival de arte</option>
+                <option value="D2.9">2.9 · Las actualidades</option>
+              </optgroup>
+              <optgroup label="Descubre 3">
+                <option value="D3.1">3.1 · Las relaciones personales</option>
+                <option value="D3.2">3.2 · Las diversiones</option>
+                <option value="D3.3">3.3 · La vida diaria</option>
+              </optgroup>
+            </select>
+          </span>
+        </label>
+        <div class="lesson-filters" data-lesson="D1.1" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="articulos" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">artículos y plurales</span><span class="opt-ex">el mapa, las lecciones</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="numeros" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">números 0–30</span><span class="opt-ex">15 → quince</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ser" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser</span><span class="opt-ex">soy, eres, es</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="hora" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la hora</span><span class="opt-ex">son las dos y media</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="saludos" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">saludos y despedidas</span><span class="opt-ex">hasta luego</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="presentaciones" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">presentaciones</span><span class="opt-ex">mucho gusto</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="cortesia" data-key="D1.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cortesía y personas</span><span class="opt-ex">con permiso</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.2" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ar" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">verbos -ar</span><span class="opt-ex">hablo, hablas</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="preguntas" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">preguntas</span><span class="opt-ex">¿dónde?, ¿cuántos?</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="estar" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">estar</span><span class="opt-ex">estoy en la biblioteca</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="numeros" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">números 31 y más</span><span class="opt-ex">45 → cuarenta y cinco</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="clase" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la clase</span><span class="opt-ex">la pizarra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="lugares" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">lugares</span><span class="opt-ex">la biblioteca</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="materias" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">materias</span><span class="opt-ex">la química</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="dias" data-key="D1.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">días</span><span class="opt-ex">el miércoles</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.3" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="adjetivos" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">adjetivos</span><span class="opt-ex">las chicas altas</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="posesivos" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">posesivos</span><span class="opt-ex">mi, tu, su, nuestra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="er-ir" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">verbos -er / -ir</span><span class="opt-ex">como, vivimos</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="tener" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">tener y venir</span><span class="opt-ex">tengo, vienes, tener hambre</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="familia" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la familia</span><span class="opt-ex">el cuñado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="gente" data-key="D1.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">gente y profesiones</span><span class="opt-ex">el/la periodista</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.4" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ir" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ir e ir a + infinitivo</span><span class="opt-ex">voy al cine, vamos a nadar</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="raiz" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cambio de raíz e→ie, o→ue</span><span class="opt-ex">quiero, puedo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="e-i" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cambio de raíz e→i</span><span class="opt-ex">pido, sigo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="yo" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo irregular</span><span class="opt-ex">hago, pongo, salgo</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pasatiempos" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pasatiempos</span><span class="opt-ex">pasear en bicicleta</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="deportes" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">deportes</span><span class="opt-ex">el baloncesto</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ciudad" data-key="D1.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">lugares en la ciudad</span><span class="opt-ex">el gimnasio</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.5" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="emociones" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">estar + emociones</span><span class="opt-ex">estoy cansado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="progresivo" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">presente progresivo</span><span class="opt-ex">estoy leyendo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ser-estar" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser y estar</span><span class="opt-ex">es alto · está cansado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="od" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">objeto directo</span><span class="opt-ex">lo, la, los, las</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="viaje" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">viajes</span><span class="opt-ex">el pasaje de ida y vuelta</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="hotel" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el hotel</span><span class="opt-ex">la habitación doble</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="tiempo" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">tiempo y estaciones</span><span class="opt-ex">hace fresco</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ordinales" data-key="D1.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ordinales</span><span class="opt-ex">tercer</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.6" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="saber-conocer" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">saber y conocer</span><span class="opt-ex">sé nadar · conozco a Ana</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="oi" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">objeto indirecto</span><span class="opt-ex">le compro, les doy</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="preterito" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito regular</span><span class="opt-ex">compré, vendiste</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="demostrativos" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">demostrativos</span><span class="opt-ex">este, esa, aquellos</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ropa" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la ropa</span><span class="opt-ex">la falda</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="compras" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">de compras</span><span class="opt-ex">regatear</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="colores" data-key="D1.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">colores</span><span class="opt-ex">anaranjado</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.7" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="reflexivos" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">verbos reflexivos</span><span class="opt-ex">me levanto, se ducha</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="negativos" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">indefinidos y negativos</span><span class="opt-ex">nadie, nunca, algo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ser-ir" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito de ser e ir</span><span class="opt-ex">fui, fue, fueron</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="gustar" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">verbos como gustar</span><span class="opt-ex">me encanta, te falta</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="rutina" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la rutina</span><span class="opt-ex">despertarse</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="bano" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el baño</span><span class="opt-ex">la toalla</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="tiempo" data-key="D1.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">expresiones de tiempo</span><span class="opt-ex">por la mañana</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.8" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pret-raiz" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito con cambio de raíz</span><span class="opt-ex">pidió, durmieron</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="dobles" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">dobles pronombres</span><span class="opt-ex">se lo, me la</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="comparar" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">comparaciones y superlativos</span><span class="opt-ex">más rico que, el mejor</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="comida" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la comida</span><span class="opt-ex">el pollo asado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="restaurante" data-key="D1.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en el restaurante</span><span class="opt-ex">el/la camarero/a</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D1.9" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pret-irr" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretéritos irregulares</span><span class="opt-ex">tuve, hizo, dijeron</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="sentido" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">verbos que cambian en pretérito</span><span class="opt-ex">conocí, supe, no quise</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="que-cual" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">¿qué? o ¿cuál?</span><span class="opt-ex">¿cuál es tu número?</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="prep" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pronombres con preposición</span><span class="opt-ex">para mí, conmigo</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="fiestas" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">fiestas</span><span class="opt-ex">brindar</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="relaciones" data-key="D1.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">relaciones y vida</span><span class="opt-ex">casarse con</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.1" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="imperfecto" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el imperfecto</span><span class="opt-ex">iba, era, tenía</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pret-imp" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito o imperfecto</span><span class="opt-ex">dormía cuando sonó</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="se" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">construcciones con se</span><span class="opt-ex">se me cayó, se habla</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="adverbios" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">adverbios</span><span class="opt-ex">rápidamente, a menudo</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="cuerpo" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el cuerpo</span><span class="opt-ex">la garganta</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="salud" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la salud</span><span class="opt-ex">la receta</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="verbos" data-key="D2.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">síntomas y verbos</span><span class="opt-ex">torcerse el tobillo</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.2" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="mandatos-tu" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">mandatos con tú</span><span class="opt-ex">apaga, no borres</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="por-para" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">por y para</span><span class="opt-ex">por la calle, para mañana</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="reciprocos" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivos recíprocos</span><span class="opt-ex">nos escribimos</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="posesivos" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">posesivos tónicos</span><span class="opt-ex">el mío, una amiga suya</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="electronica" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">electrónica</span><span class="opt-ex">el control remoto</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="computadora" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la computadora</span><span class="opt-ex">la contraseña</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="carro" data-key="D2.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el carro</span><span class="opt-ex">el volante</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.3" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="relativos" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pronombres relativos</span><span class="opt-ex">que, quien, lo que</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="mandatos-ud" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">mandatos formales</span><span class="opt-ex">barra, no salgan</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="subjuntivo" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">presente de subjuntivo</span><span class="opt-ex">que limpies, que vaya</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="voluntad" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo de voluntad</span><span class="opt-ex">quiero que barras</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="casa" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la casa</span><span class="opt-ex">el sótano</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="quehaceres" data-key="D2.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">quehaceres</span><span class="opt-ex">sacudir los muebles</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.4" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="emocion" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo con emoción</span><span class="opt-ex">me alegro de que recicles</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="duda" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo con duda</span><span class="opt-ex">dudo que llueva · creo que llueve</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="conjunciones" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo con conjunciones</span><span class="opt-ex">para que, antes de que</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="naturaleza" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la naturaleza</span><span class="opt-ex">el bosque tropical</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ambiente" data-key="D2.4"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el medio ambiente</span><span class="opt-ex">el reciclaje</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.5" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="adjetival" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">subjuntivo en cláusulas adjetivales</span><span class="opt-ex">busco un banco que abra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="mandatos-nos" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">mandatos con nosotros</span><span class="opt-ex">crucemos, vámonos</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="participios" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">participios como adjetivos</span><span class="opt-ex">la carta escrita</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ciudad" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la ciudad</span><span class="opt-ex">la carnicería</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="banco" data-key="D2.5"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el banco y el correo</span><span class="opt-ex">el cajero automático</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.6" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="perfecto" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito perfecto</span><span class="opt-ex">he corrido, has visto</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pluscuamperfecto" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pluscuamperfecto</span><span class="opt-ex">había comido</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="perfecto-subj" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">perfecto de subjuntivo</span><span class="opt-ex">que hayas comido</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="bienestar" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el bienestar</span><span class="opt-ex">el estrés</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="nutricion" data-key="D2.6"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la nutrición</span><span class="opt-ex">las proteínas</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.7" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="futuro" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el futuro</span><span class="opt-ex">trabajaré, tendrás</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="futuro-perfecto" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">futuro perfecto</span><span class="opt-ex">habré terminado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="subj-pasado" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">imperfecto de subjuntivo</span><span class="opt-ex">que trabajara, que fuera</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="profesiones" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">profesiones</span><span class="opt-ex">el/la abogado/a</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="trabajo" data-key="D2.7"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el trabajo</span><span class="opt-ex">la entrevista</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.8" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="condicional" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el condicional</span><span class="opt-ex">iría, podrías</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="cond-perfecto" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">condicional perfecto</span><span class="opt-ex">habría ido</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="plusc-subj" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pluscuamperfecto de subjuntivo</span><span class="opt-ex">que hubiera visto</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="artes" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">las artes</span><span class="opt-ex">la escultura</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="cine" data-key="D2.8"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cine y televisión</span><span class="opt-ex">el premio</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D2.9" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la palabra → its meaning</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">the meaning → la palabra</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="si" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cláusulas con si</span><span class="opt-ex">si tuviera, iría</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="resumen" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">resumen del subjuntivo</span><span class="opt-ex">indicativo o subjuntivo</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="politica" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">política y noticias</span><span class="opt-ex">las elecciones</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="desastres" data-key="D2.9"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">desastres</span><span class="opt-ex">el terremoto</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D3.1" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">tacaño → stingy</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">stingy → tacaño</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="contexto" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en contexto</span><span class="opt-ex">es muy ___: nunca paga</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="presente" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el presente</span><span class="opt-ex">sueño, propongo, nos llevamos</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="ser-estar" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser y estar</span><span class="opt-ex">es listo · está listo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="progresivo" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">formas progresivas</span><span class="opt-ex">sigue llamándola</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="personalidad" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la personalidad</span><span class="opt-ex">tacaño</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="estados" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">los estados emocionales</span><span class="opt-ex">agobiado</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="sentimientos" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">los sentimientos</span><span class="opt-ex">estar harto de</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="relaciones" data-key="D3.1"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">las relaciones</span><span class="opt-ex">la cita a ciegas</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D3.2" hidden>
+          <fieldset class="group">
+            <legend class="group-h">vocab · ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la taquilla → box office</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">box office → la taquilla</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="contexto" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en contexto</span><span class="opt-ex">hacer ___ dos horas</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">vocab · tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="musica" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">música y teatro</span><span class="opt-ex">la taquilla</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="lugares" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">lugares de recreo</span><span class="opt-ex">la feria</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="deportes" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">deportes</span><span class="opt-ex">el árbitro</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="diversiones" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">diversiones</span><span class="opt-ex">el ajedrez</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="adjetivos" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">adjetivos</span><span class="opt-ex">animado</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">pronombres</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="od" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">objeto directo</span><span class="opt-ex">lo, la, los, las</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="oi" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">objeto indirecto</span><span class="opt-ex">me, te, le, nos, les</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="doble" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">doble</span><span class="opt-ex">le + lo → se lo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="prep" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">preposicionales</span><span class="opt-ex">para mí, conmigo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pos" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">posición</span><span class="opt-ex">cómpralas, voy a verlo</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">gustar</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="forma" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">forma</span><span class="opt-ex">a Marta le encantan</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="a" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">a + pronombre</span><span class="opt-ex">a mí me, a ellos les</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="significado" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">significado</span><span class="opt-ex">caer bien</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="traduccion" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">traducción</span><span class="opt-ex">my head hurts</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">reflexivos</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="rf-forma" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">forma y posición</span><span class="opt-ex">me divierto, voy a divertirme</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="rf-sentido" data-key="D3.2"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">con o sin se</span><span class="opt-ex">dormir / dormirse</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+        <div class="lesson-filters" data-lesson="D3.3" hidden>
+          <fieldset class="group">
+            <legend class="group-h">ejercicio</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="es-en" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">es → en</span><span class="opt-ex">la ganga → bargain</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="en-es" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en → es</span><span class="opt-ex">bargain → la ganga</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="contexto" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en contexto</span><span class="opt-ex">quiero un ___ (refund)</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="preterito" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el pretérito</span><span class="opt-ex">barrí, hirvió, trajeron</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="imperfecto" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">el imperfecto</span><span class="opt-ex">solía, íbamos, era</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="pret-imp" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pretérito o imperfecto</span><span class="opt-ex">barría cuando sonó el timbre</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="sentido" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">cambian de sentido</span><span class="opt-ex">conocí · conocía, supe · sabía</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="traduccion" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">traducción</span><span class="opt-ex">I used to get up early</span><span class="opt-count"></span></label>
+          </fieldset>
+          <fieldset class="group">
+            <legend class="group-h">tema</legend>
+            <label class="opt"><input class="opt-input" type="checkbox" value="casa" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">en casa</span><span class="opt-ex">quitar el polvo</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="compras" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">de compras</span><span class="opt-ex">el reembolso</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="expresiones" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">expresiones</span><span class="opt-ex">de vez en cuando</span><span class="opt-count"></span></label>
+            <label class="opt"><input class="opt-input" type="checkbox" value="vida" data-key="D3.3"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">la vida diaria</span><span class="opt-ex">soler</span><span class="opt-count"></span></label>
+          </fieldset>
+        </div>
+      </div>
+      <div class="rail" id="rail-general" data-rail="general" hidden>
+        <label class="pick" for="upto">
+          <span class="group-h">hasta</span>
+          <span class="pick-box">
+            <select class="pick-select" id="upto">
+              <optgroup label="Descubre 1">
+                <option value="D1.1">1.1 · Hola, ¿qué tal?</option>
+                <option value="D1.2">1.2 · En la clase</option>
+                <option value="D1.3">1.3 · La familia</option>
+                <option value="D1.4">1.4 · Los pasatiempos</option>
+                <option value="D1.5">1.5 · Las vacaciones</option>
+                <option value="D1.6">1.6 · ¡De compras!</option>
+                <option value="D1.7">1.7 · La rutina diaria</option>
+                <option value="D1.8">1.8 · La comida</option>
+                <option value="D1.9">1.9 · Las fiestas</option>
+              </optgroup>
+              <optgroup label="Descubre 2">
+                <option value="D2.1">2.1 · En el consultorio</option>
+                <option value="D2.2">2.2 · La tecnología</option>
+                <option value="D2.3">2.3 · La vivienda</option>
+                <option value="D2.4">2.4 · La naturaleza</option>
+                <option value="D2.5">2.5 · En la ciudad</option>
+                <option value="D2.6">2.6 · El bienestar</option>
+                <option value="D2.7">2.7 · El mundo del trabajo</option>
+                <option value="D2.8">2.8 · Un festival de arte</option>
+                <option value="D2.9">2.9 · Las actualidades</option>
+              </optgroup>
+              <optgroup label="Descubre 3">
+                <option value="D3.1">3.1 · Las relaciones personales</option>
+                <option value="D3.2">3.2 · Las diversiones</option>
+                <option value="D3.3">3.3 · La vida diaria</option>
+              </optgroup>
+            </select>
+          </span>
+        </label>
+        <label class="pick" for="focus">
+          <span class="group-h">foco</span>
+          <span class="pick-box">
+            <select class="pick-select" id="focus">
+              <option value="">ninguno · todo igual</option>
+              <optgroup label="Descubre 1">
+                <option value="D1.1">1.1 · Hola, ¿qué tal?</option>
+                <option value="D1.2">1.2 · En la clase</option>
+                <option value="D1.3">1.3 · La familia</option>
+                <option value="D1.4">1.4 · Los pasatiempos</option>
+                <option value="D1.5">1.5 · Las vacaciones</option>
+                <option value="D1.6">1.6 · ¡De compras!</option>
+                <option value="D1.7">1.7 · La rutina diaria</option>
+                <option value="D1.8">1.8 · La comida</option>
+                <option value="D1.9">1.9 · Las fiestas</option>
+              </optgroup>
+              <optgroup label="Descubre 2">
+                <option value="D2.1">2.1 · En el consultorio</option>
+                <option value="D2.2">2.2 · La tecnología</option>
+                <option value="D2.3">2.3 · La vivienda</option>
+                <option value="D2.4">2.4 · La naturaleza</option>
+                <option value="D2.5">2.5 · En la ciudad</option>
+                <option value="D2.6">2.6 · El bienestar</option>
+                <option value="D2.7">2.7 · El mundo del trabajo</option>
+                <option value="D2.8">2.8 · Un festival de arte</option>
+                <option value="D2.9">2.9 · Las actualidades</option>
+              </optgroup>
+              <optgroup label="Descubre 3">
+                <option value="D3.1">3.1 · Las relaciones personales</option>
+                <option value="D3.2">3.2 · Las diversiones</option>
+                <option value="D3.3">3.3 · La vida diaria</option>
+              </optgroup>
+            </select>
+          </span>
+        </label>
+        <fieldset class="group">
+          <legend class="group-h">ejercicio</legend>
+          <label class="opt"><input class="opt-input" type="checkbox" value="vocab" data-key="general"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">vocabulario</span><span class="opt-ex">palabras de cada lección</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="checkbox" value="gram" data-key="general"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">gramática</span><span class="opt-ex">estructuras y verbos</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="checkbox" value="mix" data-key="general"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">repaso mixto</span><span class="opt-ex">traducción, errores, tiempos</span><span class="opt-count"></span></label>
+        </fieldset>
+      </div>
+      <div class="rail" id="rail-lectura" data-rail="lectura" hidden>
+        <fieldset class="group">
+          <legend class="group-h">lectura · 3.1</legend>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="cita"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Una cita a ciegas</span><span class="opt-ex">relaciones</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="abuelos"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Cincuenta años juntos</span><span class="opt-ex">familia</span><span class="opt-count"></span></label>
+        </fieldset>
+        <fieldset class="group">
+          <legend class="group-h">lectura · 3.2</legend>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="entradas"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Entradas agotadas</span><span class="opt-ex">música</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="final"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">La final del campeonato</span><span class="opt-ex">deportes</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="correo"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Un correo de Camila</span><span class="opt-ex">gustar</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="club"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">El club de los sábados</span><span class="opt-ex">ocio</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="estreno"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">La noche del estreno</span><span class="opt-ex">teatro</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="feria"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Domingo en la feria</span><span class="opt-ex">diversiones</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="sorpresa"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">La fiesta sorpresa</span><span class="opt-ex">diversiones</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="zoologico"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Un domingo en el zoológico</span><span class="opt-ex">lugares</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="ajedrez"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">El torneo de ajedrez</span><span class="opt-ex">deportes</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="obra"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">La obra de la escuela</span><span class="opt-ex">teatro</span><span class="opt-count"></span></label>
+        </fieldset>
+        <fieldset class="group">
+          <legend class="group-h">lectura · 3.3</legend>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="sabado"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Un sábado de limpieza</span><span class="opt-ex">en casa</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="ganga"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">La ganga que no fue</span><span class="opt-ex">de compras</span><span class="opt-count"></span></label>
+          <label class="opt"><input class="opt-input" type="radio" name="reading" value="abuela"><span class="opt-box opt-radio" aria-hidden="true"></span><span class="opt-name">Así era la vida de mi abuela</span><span class="opt-ex">vida diaria</span><span class="opt-count"></span></label>
+        </fieldset>
+      </div>
+      <!-- /menu:rail -->
 
       <div class="side-foot">
         <label class="switch">
@@ -53,6 +610,12 @@
         </button>
         <div class="modes" id="modes" role="tablist" aria-label="modo">
           <span class="modes-ink" id="modes-ink" aria-hidden="true"></span>
+          <!-- menu:tabs (written by tools/menu.js) -->
+          <button class="mode" id="tab-conjugar" type="button" role="tab" data-mode="conjugar" aria-controls="stage" aria-selected="false" tabindex="-1">conjugar</button>
+          <button class="mode" id="tab-leccion" type="button" role="tab" data-mode="leccion" aria-controls="stage" aria-selected="false" tabindex="-1">lección</button>
+          <button class="mode" id="tab-general" type="button" role="tab" data-mode="general" aria-controls="stage" aria-selected="false" tabindex="-1">general</button>
+          <button class="mode" id="tab-lectura" type="button" role="tab" data-mode="lectura" aria-controls="read" aria-selected="false" tabindex="-1">lectura</button>
+          <!-- /menu:tabs -->
         </div>
         <div class="stats">
           <div class="stat stat-streak" id="streak-box" title="racha">
@@ -130,6 +693,7 @@
   <script src="js/core/conjugate.js"></script>
   <script src="js/data/verb.js"></script>
   <script src="js/tenses/present.js"></script>
+  <script src="js/tenses/others.js"></script>
   <script src="js/data/verbs-irregular.js"></script>
   <script src="js/data/verbs-stem.js"></script>
   <script src="js/data/verbs-spelling.js"></script>

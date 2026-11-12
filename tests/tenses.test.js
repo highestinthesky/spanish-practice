@@ -35,17 +35,25 @@ test('the shared registry has the present tense with six persons and vosotros at
   assert.equal(t.persons[4], 'vosotros');
 });
 
-test('the drill registers the present tense only', () => {
-  assert.deepEqual(D.tenses.all().map((t) => t.id), ['present']);
+const ALL = ['present', 'preterite', 'imperfect', 'future', 'conditional', 'perfect', 'pluperfect', 'subjunctive', 'pastSubjunctive'];
+
+test('the drill registers every tense the conjugator builds, present first', () => {
+  assert.deepEqual(D.tenses.all().map((t) => t.id), ALL);
+  for (const t of D.tenses.all()) {
+    assert.equal(t.persons.length, 6, t.id);
+    assert.equal(t.vosotrosIndex, 4, t.id);
+    assert.ok(t.name, t.id);
+    assert.ok(D.TENSE_GROUPS.includes(t.group), t.id);
+  }
 });
 
-test('the parked tenses still register cleanly, for when they come back', () => {
-  require('../js/tenses/parked.js');
-  const r = D.createTenseRegistry();
-  r.register({ id: 'present', mark: 'pres', persons: PERSONS, vosotrosIndex: 4 });
-  D.registerParkedTenses(r);
-  assert.deepEqual(r.all().map((t) => t.id), ['present', 'preterite', 'imperfect', 'future', 'conditional', 'subjunctive', 'pastSubjunctive', 'perfect', 'pluperfect']);
-  for (const t of r.all()) assert.equal(t.persons.length, 6);
+test('every verb has all six forms of every tense, preterite included', () => {
+  for (const verb of D.verbs) {
+    for (const t of D.tenses.all()) {
+      const forms = verb.forms[t.id];
+      assert.ok(Array.isArray(forms) && forms.length === 6 && forms.every((f) => f.trim()), `${verb.inf} ${t.id}`);
+    }
+  }
 });
 
 test('the conjugation table lists every tense the conjugator builds, with Spanish names', () => {

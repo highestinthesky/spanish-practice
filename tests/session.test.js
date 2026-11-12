@@ -61,12 +61,12 @@ test('next() returns null when there are no verbs at all', () => {
   assert.equal(session.next(), null);
 });
 
-test('setTense ignores unknown tenses; an unknown saved tense falls back to the first registered', () => {
+test('toggleTense ignores unknown tenses; an unknown saved tense falls back to the first registered', () => {
   const { session, store } = setup();
-  session.setTense('imperfect');
-  assert.equal(store.state().settings.tense, 'present');
+  session.toggleTense('imperfect');
+  assert.equal(store.state().settings.tenses, null);
   store.setSetting('tense', 'gone');
-  assert.equal(session.tense().id, 'present');
+  assert.deepEqual(session.tensesInPlay().map((t) => t.id), ['present']);
   assert.ok(session.next());
 });
 
@@ -202,11 +202,10 @@ test('missed is set for a form whose last answer was wrong in an earlier session
   assert.equal(p.retry, false);
 });
 
-test('mix draws from every registered tense', () => {
+test('an old mix setting ticks every tense, and the drill draws from all of them', () => {
   const { session, store } = bigSetup();
-  session.setTense('mix');
-  assert.equal(store.state().settings.tense, 'mix');
-  assert.equal(session.mixed(), true);
+  store.setSetting('tense', 'mix');
+  assert.ok(session.tenseOn('present') && session.tenseOn('preterite'));
   const seen = new Set();
   for (let i = 0; i < 80; i += 1) {
     const p = session.next();
@@ -214,6 +213,29 @@ test('mix draws from every registered tense', () => {
     assert.equal(p.expected, p.verb.forms[p.tenseId][p.person]);
   }
   assert.deepEqual([...seen].sort(), ['present', 'preterite']);
+});
+
+test('ticking only the preterite drills only preterite forms', () => {
+  const { session, store } = bigSetup();
+  session.toggleTense('preterite');
+  session.toggleTense('present');
+  assert.deepEqual(store.state().settings.tenses, ['preterite']);
+  for (let i = 0; i < 60; i += 1) {
+    const p = session.next();
+    assert.equal(p.tenseId, 'preterite');
+    assert.equal(p.expected, p.verb.forms.preterite[p.person]);
+    session.answer(p, i % 2 ? p.expected : 'zzz');
+  }
+});
+
+test('with no tense ticked the pool is empty, but type and book counts still show', () => {
+  const { session } = bigSetup();
+  session.toggleTense('present');
+  assert.equal(session.tensesInPlay().length, 0);
+  assert.equal(session.next(), null);
+  assert.equal(session.poolSize(), 0);
+  assert.ok(session.bookCount('all') > 0);
+  assert.ok(session.tenseCount('preterite') > 0);
 });
 
 function bookSetup(saved) {
