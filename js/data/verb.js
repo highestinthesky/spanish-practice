@@ -49,7 +49,8 @@
     }
 
     // Every registered tense the conjugator knows is filled in; forms typed by hand are kept as they are.
-    // tricky[tenseId] is true when any form of that tense breaks the regular pattern.
+    // tricky[tenseId] is true when any form of that tense breaks the regular pattern; kinds[tenseId] lists the
+    // verb types it has in that tense (the tense's own kinds()), which the menu filters on.
     function addVerbs(list) {
       for (const verb of list) {
         if (verbs.some((x) => x.inf === verb.inf)) throw new Error(`duplicate verb: ${verb.inf}`);
@@ -57,6 +58,7 @@
           if (!TAGS.includes(tag)) throw new Error(`${verb.inf}: unknown tag ${tag}`);
         }
         verb.tricky = {};
+        verb.kinds = {};
         if (D.conjugate) {
           const table = tableOf(verb);
           const irr = irregularMap(verb);
@@ -64,6 +66,7 @@
             if (!Array.isArray(table[tense.id])) continue;
             if (!verb.forms[tense.id]) verb.forms[tense.id] = table[tense.id].slice();
             verb.tricky[tense.id] = irr[tense.id].some(Boolean);
+            if (tense.kinds) verb.kinds[tense.id] = tense.kinds(verb);
           }
         }
         for (const [tenseId, forms] of Object.entries(verb.forms)) validateForms(verb, tenseId, forms);
@@ -102,26 +105,6 @@
   // The verb-type chips of the menu; the books have their own control.
   D.TYPE_TAGS = TAGS.filter((t) => !/^D\d$/.test(t));
 
-  // How the menu names and groups the verb types. The example shows the change in one form.
-  D.TYPE_GROUPS = [
-    { name: 'cambio de raíz', tags: ['e→ie', 'o→ue', 'e→i'] },
-    { name: 'yo irregular', tags: ['-go', '-zco'] },
-    { name: 'ortografía y acento', tags: ['-uir', 'í/ú', 'spelling'] },
-    { name: 'otros', tags: ['irregular', 'reflexive', 'regular'] },
-  ];
-  D.TYPE_INFO = {
-    'e→ie': { name: 'e → ie', example: 'pensar → pienso' },
-    'o→ue': { name: 'o → ue', example: 'poder → puedo' },
-    'e→i': { name: 'e → i', example: 'pedir → pido' },
-    '-go': { name: 'yo -go', example: 'hacer → hago' },
-    '-zco': { name: 'yo -zco', example: 'conocer → conozco' },
-    '-uir': { name: '-uir + y', example: 'construir → construyo' },
-    'í/ú': { name: 'í / ú', example: 'enviar → envío' },
-    spelling: { name: 'ortográfico', example: 'escoger → escojo' },
-    irregular: { name: 'irregular', example: 'ser → soy' },
-    reflexive: { name: 'reflexivo', example: 'lavarse → me lavo' },
-    regular: { name: 'regular', example: 'hablar → hablo' },
-  };
   D.v = v;
   D.createVerbBook = createVerbBook;
   D.verbs = book.verbs;

@@ -51,35 +51,197 @@
             <label class="seg-opt"><input class="opt-input" type="radio" name="book" value="D3"><span>Descubre 3</span><span class="seg-n"></span></label>
           </div>
         </fieldset>
-        <fieldset class="group group-grow" id="types">
-          <legend class="group-h">tipo de verbo</legend>
-          <div class="types-top">
-            <label class="all"><input class="opt-input" type="checkbox" value=""><span>todos</span><span class="all-n"></span></label>
-          </div>
-          <div class="type-group">
-            <p class="type-group-name">cambio de raíz</p>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→ie"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → ie</span><span class="opt-ex">pensar → pienso</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="o→ue"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">o → ue</span><span class="opt-ex">poder → puedo</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→i"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → i</span><span class="opt-ex">pedir → pido</span><span class="opt-count"></span></label>
-          </div>
-          <div class="type-group">
-            <p class="type-group-name">yo irregular</p>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-go"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -go</span><span class="opt-ex">hacer → hago</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-zco"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -zco</span><span class="opt-ex">conocer → conozco</span><span class="opt-count"></span></label>
-          </div>
-          <div class="type-group">
-            <p class="type-group-name">ortografía y acento</p>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-uir"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-uir + y</span><span class="opt-ex">construir → construyo</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="í/ú"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">í / ú</span><span class="opt-ex">enviar → envío</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="spelling"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ortográfico</span><span class="opt-ex">escoger → escojo</span><span class="opt-count"></span></label>
-          </div>
-          <div class="type-group">
-            <p class="type-group-name">otros</p>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">irregular</span><span class="opt-ex">ser → soy</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavo</span><span class="opt-count"></span></label>
-            <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablo</span><span class="opt-count"></span></label>
-          </div>
-        </fieldset>
+        <div class="tense-types" id="types">
+          <fieldset class="group" data-tense="present">
+            <legend class="group-h">tipo · presente</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="present"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">cambio de raíz</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→ie" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → ie</span><span class="opt-ex">pensar → pienso</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="o→ue" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">o → ue</span><span class="opt-ex">poder → puedo</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→i" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → i</span><span class="opt-ex">pedir → pido</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">yo irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-go" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -go</span><span class="opt-ex">hacer → hago</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-zco" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -zco</span><span class="opt-ex">conocer → conozco</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">ortografía y acento</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="-uir" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-uir + y</span><span class="opt-ex">construir → construyo</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="í/ú" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">í / ú</span><span class="opt-ex">enviar → envío</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="spelling" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ortográfico</span><span class="opt-ex">escoger → escojo</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">irregular</span><span class="opt-ex">ser → soy</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavo</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="present"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablo</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="preterite" hidden>
+            <legend class="group-h">tipo · pretérito</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="preterite"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="strong" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz fuerte</span><span class="opt-ex">tener → tuve</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="j" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz en j</span><span class="opt-ex">decir → dije</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="unique" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser · ir · dar · ver</span><span class="opt-ex">ir → fui</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">cambio en él y ellos</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="stem" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-ir: e → i, o → u</span><span class="opt-ex">pedir → pidió</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="y" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">i → y</span><span class="opt-ex">leer → leyó</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">ortografía</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="spelling" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">yo -qué -gué -cé</span><span class="opt-ex">buscar → busqué</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavé</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="preterite"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablé</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="imperfect" hidden>
+            <legend class="group-h">tipo · imperfecto</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="imperfect"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">terminación</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="ar" data-tense="imperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-ar → -aba</span><span class="opt-ex">hablar → hablaba</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="er-ir" data-tense="imperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-er / -ir → -ía</span><span class="opt-ex">comer → comía</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular" data-tense="imperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser · ir · ver</span><span class="opt-ex">ir → iba</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="imperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavaba</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="future" hidden>
+            <legend class="group-h">tipo · futuro</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="future"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">raíz irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="drop" data-tense="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pierde la vocal</span><span class="opt-ex">poder → podré</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="dr" data-tense="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz en -dr-</span><span class="opt-ex">tener → tendré</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="short" data-tense="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz corta</span><span class="opt-ex">hacer → haré</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavaré</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="future"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablaré</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="conditional" hidden>
+            <legend class="group-h">tipo · condicional</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="conditional"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">raíz irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="drop" data-tense="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">pierde la vocal</span><span class="opt-ex">poder → podría</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="dr" data-tense="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz en -dr-</span><span class="opt-ex">tener → tendría</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="short" data-tense="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz corta</span><span class="opt-ex">hacer → haría</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavaría</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="conditional"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablaría</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="perfect" hidden>
+            <legend class="group-h">tipo · pretérito perfecto</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="perfect"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">participio</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular" data-tense="perfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">irregular</span><span class="opt-ex">hacer → he hecho</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="accent" data-tense="perfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-ído con acento</span><span class="opt-ex">leer → he leído</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="perfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me he lavado</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="perfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → he hablado</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="pluperfect" hidden>
+            <legend class="group-h">tipo · pluscuamperfecto</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="pluperfect"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">participio</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular" data-tense="pluperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">irregular</span><span class="opt-ex">hacer → había hecho</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="accent" data-tense="pluperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-ído con acento</span><span class="opt-ex">leer → había leído</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="pluperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me había lavado</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="pluperfect"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → había hablado</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="subjunctive" hidden>
+            <legend class="group-h">tipo · subjuntivo presente</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="subjunctive"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">cambio de raíz</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→ie" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → ie</span><span class="opt-ex">pensar → piense</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="o→ue" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">o → ue</span><span class="opt-ex">poder → pueda</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="e→i" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">e → i</span><span class="opt-ex">pedir → pida</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="yo" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz del yo</span><span class="opt-ex">tener → tenga</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="irregular" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser · ir · estar · dar · saber</span><span class="opt-ex">ir → vaya</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">ortografía y acento</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="spelling" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ortográfico</span><span class="opt-ex">buscar → busque</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="accent" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">í / ú</span><span class="opt-ex">enviar → envíe</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lave</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="subjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hable</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="group" data-tense="pastSubjunctive" hidden>
+            <legend class="group-h">tipo · subjuntivo imperfecto</legend>
+            <div class="types-top">
+              <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="pastSubjunctive"><span>todos</span><span class="all-n"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">irregular</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="strong" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz fuerte</span><span class="opt-ex">tener → tuviera</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="j" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">raíz en j</span><span class="opt-ex">decir → dijera</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="unique" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">ser · ir · dar · ver</span><span class="opt-ex">ir → fuera</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">cambio en él y ellos</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="stem" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">-ir: e → i, o → u</span><span class="opt-ex">pedir → pidiera</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="y" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">i → y</span><span class="opt-ex">leer → leyera</span><span class="opt-count"></span></label>
+            </div>
+            <div class="type-group">
+              <p class="type-group-name">otros</p>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="reflexive" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">reflexivo</span><span class="opt-ex">lavarse → me lavara</span><span class="opt-count"></span></label>
+              <label class="opt"><input class="opt-input" type="checkbox" name="type" value="regular" data-tense="pastSubjunctive"><span class="opt-box" aria-hidden="true"></span><span class="opt-name">regular</span><span class="opt-ex">hablar → hablara</span><span class="opt-count"></span></label>
+            </div>
+          </fieldset>
+        </div>
       </div>
       <div class="rail" id="rail-leccion" data-rail="leccion" hidden>
         <label class="pick" for="lesson">

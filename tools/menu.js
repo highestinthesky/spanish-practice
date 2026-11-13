@@ -78,16 +78,23 @@ function conjugarRail(D) {
   seg.push('</div>');
   out.push(...indent(fieldset('libro', seg, { id: 'book' }), 2));
 
-  const types = ['<div class="types-top">', '  <label class="all"><input class="opt-input" type="checkbox" value=""><span>todos</span><span class="all-n"></span></label>', '</div>'];
-  for (const group of D.TYPE_GROUPS) {
-    types.push('<div class="type-group">', `  <p class="type-group-name">${esc(group.name)}</p>`);
-    for (const tag of group.tags) {
-      const info = D.TYPE_INFO[tag];
-      types.push(`  ${opt({ name: 'type', value: tag, label: info.name, example: info.example })}`);
+  // One verb-type menu per tense, each with its own types: tuve and dije sort verbs in the pretérito, not pienso.
+  // The app shows the menus of the ticked tenses; the present's is the one showing before it runs.
+  out.push('  <div class="tense-types" id="types">');
+  for (const t of D.tenses.all()) {
+    const rows = [
+      '<div class="types-top">',
+      `  <label class="all"><input class="opt-input" type="checkbox" value="" data-tense="${t.id}"><span>todos</span><span class="all-n"></span></label>`,
+      '</div>',
+    ];
+    for (const group of t.types) {
+      rows.push('<div class="type-group">', `  <p class="type-group-name">${esc(group.name)}</p>`);
+      for (const item of group.items) rows.push(`  ${opt({ name: 'type', value: item.id, label: item.name, example: item.example, data: { 'data-tense': t.id } })}`);
+      rows.push('</div>');
     }
-    types.push('</div>');
+    out.push(...indent(fieldset(`tipo · ${t.name}`, rows, { 'data-tense': t.id, hidden: t.id !== 'present' }), 4));
   }
-  out.push(...indent(fieldset('tipo de verbo', types, { id: 'types' }), 2).map((l, i) => (i === 0 ? l.replace('class="group"', 'class="group group-grow"') : l)));
+  out.push('  </div>');
   out.push('</div>');
   return out;
 }

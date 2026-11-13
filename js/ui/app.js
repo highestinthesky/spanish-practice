@@ -175,8 +175,9 @@
       input.addEventListener('change', () => changed(() => session.setBook(input.value)));
     }
     for (const input of el.types.querySelectorAll('input')) {
-      // The value-less box is "todos".
-      input.addEventListener('change', () => changed(() => (input.value ? session.toggleType(input.value) : session.setAllTypes(input.checked))));
+      // Each tense has its own type menu; the value-less box is its "todos".
+      const id = input.dataset.tense;
+      input.addEventListener('change', () => changed(() => (input.value ? session.toggleType(input.value, id) : session.setAllTypes(input.checked, id))));
     }
     for (const input of el.side.querySelectorAll('input[data-key]')) {
       input.addEventListener('change', () => changed(() => toggleEx(input.dataset.key, input.value)));
@@ -256,16 +257,22 @@
         input.checked = input.value === st.book;
         input.closest('.seg-opt').querySelector('.seg-n').textContent = String(session.bookCount(input.value));
       }
-      for (const input of el.types.querySelectorAll('input')) {
-        if (!input.value) {
-          input.checked = st.off.length === 0;
-          input.closest('.all').querySelector('.all-n').textContent = String(session.bookCount(st.book));
-          continue;
+      // Only the ticked tenses' type menus show, in tense order.
+      for (const box of el.types.querySelectorAll('fieldset[data-tense]')) {
+        const id = box.dataset.tense;
+        box.hidden = !session.tenseOn(id);
+        if (box.hidden) continue;
+        for (const input of box.querySelectorAll('input')) {
+          if (!input.value) {
+            input.checked = session.allTypesOn(id);
+            input.closest('.all').querySelector('.all-n').textContent = String(session.typeTotal(id));
+            continue;
+          }
+          const n = session.countFor(input.value, id);
+          input.checked = session.typeOn(input.value, id);
+          input.disabled = n === 0;
+          countOf(input).textContent = String(n);
         }
-        const n = session.countFor(input.value);
-        input.checked = session.typeOn(input.value);
-        input.disabled = n === 0;
-        countOf(input).textContent = String(n);
       }
       poolText(session.poolSize(), 'verbo', 'verbos');
       if (!session.tensesInPlay().length) el.empty.textContent = 'elige un tiempo';

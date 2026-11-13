@@ -68,7 +68,9 @@ svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; 
 .close:hover { background: var(--color-paper-3); }
 
 .group { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-xs); }
-.group-grow { flex: 1; align-content: start; }
+/* One verb-type menu per ticked tense, stacked. */
+.tense-types { flex: 1; display: grid; align-content: start; gap: var(--space-lg); }
+.tense-types > .group[hidden] { display: none; }
 .group-h {
   float: left; width: 100%; margin: 0 0 var(--space-xs); padding: 0 var(--space-xs);
   font-size: var(--text-micro); font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;

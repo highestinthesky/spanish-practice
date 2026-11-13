@@ -15,7 +15,7 @@ function fakeStorage(initial) {
 
 test('fresh store has defaults', () => {
   const s = D.createStore(() => fakeStorage());
-  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', tenses: null, book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } });
+  assert.deepEqual(s.state(), { items: {}, settings: { chips: [], vosotros: true, tense: 'present', tenses: null, book: 'all', offBy: {}, mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } });
 });
 
 test('the storage key is conjugacion.v1', () => {
@@ -87,7 +87,7 @@ test('sanitize drops bad items and bad settings but keeps good ones', () => {
   });
   const s = D.createStore(() => fakeStorage(raw));
   assert.deepEqual(Object.keys(s.state().items), ['good']);
-  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', tenses: null, book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' });
+  assert.deepEqual(s.state().settings, { chips: ['e→ie'], vosotros: true, tense: 'present', tenses: null, book: 'all', offBy: {}, mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' });
 });
 
 test('clear resets state and removes the stored key', () => {
@@ -106,11 +106,24 @@ test('book setting: D1, D2 and D3 are kept, anything else falls back to all', ()
   }
 });
 
-test('off setting: an array of type names, anything else becomes empty', () => {
-  for (const [raw, want] of [[['reflexive'], ['reflexive']], [['x', 7], ['x']], ['reflexive', []], [null, []]]) {
-    const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { off: raw } })));
-    assert.deepEqual(s.state().settings.off, want, JSON.stringify(raw));
+test('offBy setting: unticked type names per tense, anything else is dropped', () => {
+  for (const [raw, want] of [
+    [{ preterite: ['strong'], present: ['x', 7] }, { preterite: ['strong'], present: ['x'] }],
+    [{ present: 'reflexive' }, {}],
+    [['reflexive'], {}],
+    [null, {}],
+  ]) {
+    const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { offBy: raw } })));
+    assert.deepEqual(s.state().settings.offBy, want, JSON.stringify(raw));
   }
+});
+
+test('the old off setting becomes the present tense unticked types', () => {
+  const s = D.createStore(() => fakeStorage(JSON.stringify({ settings: { off: ['reflexive', 7] } })));
+  assert.deepEqual(s.state().settings.offBy, { present: ['reflexive'] });
+  const both = D.createStore(() => fakeStorage(JSON.stringify({ settings: { off: ['reflexive'], offBy: { present: ['regular'] } } })));
+  assert.deepEqual(both.state().settings.offBy, { present: ['regular'] });
+  assert.equal('off' in s.state().settings, false);
 });
 
 test('mode, lesson and exercise filters persist; junk values fall back to defaults', () => {
