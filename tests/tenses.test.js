@@ -65,3 +65,40 @@ test('the conjugation table lists every tense the conjugator builds, with Spanis
     assert.equal(table[t.id].length, 6, t.id);
   }
 });
+
+/* Each tense has its own verb types. */
+
+test('every tense has its own grouped verb types, and every verb has at least one known type in each', () => {
+
+  for (const t of D.tenses.all()) {
+    const ids = t.types.flatMap((g) => g.items.map((i) => i.id));
+    assert.ok(ids.length, t.id);
+    assert.equal(new Set(ids).size, ids.length, `${t.id}: duplicate type`);
+    for (const g of t.types) for (const i of g.items) assert.ok(i.name && /→/.test(i.example), `${t.id} ${i.id}`);
+    for (const v of D.verbs) {
+      const kinds = v.kinds[t.id];
+      assert.ok(kinds && kinds.length, `${v.inf} has no ${t.id} type`);
+      for (const k of kinds) assert.ok(ids.includes(k), `${v.inf}: ${t.id} type ${k} is not in its menu`);
+    }
+  }
+});
+
+test('verbs sort into the types their tense teaches', () => {
+
+  const kinds = (inf, id) => D.verbs.find((v) => v.inf === inf).kinds[id];
+  const cases = [
+    ['preterite', 'tener', 'strong'], ['preterite', 'estar', 'strong'], ['preterite', 'decir', 'j'], ['preterite', 'conducir', 'j'],
+    ['preterite', 'ir', 'unique'], ['preterite', 'dar', 'unique'], ['preterite', 'pedir', 'stem'], ['preterite', 'dormir', 'stem'],
+    ['preterite', 'leer', 'y'], ['preterite', 'construir', 'y'], ['preterite', 'buscar', 'spelling'], ['preterite', 'llegar', 'spelling'],
+    ['preterite', 'hablar', 'regular'], ['preterite', 'pensar', 'regular'],
+    ['pastSubjunctive', 'tener', 'strong'], ['pastSubjunctive', 'buscar', 'regular'],
+    ['imperfect', 'ir', 'irregular'], ['imperfect', 'hablar', 'ar'], ['imperfect', 'vivir', 'er-ir'],
+    ['future', 'poder', 'drop'], ['future', 'tener', 'dr'], ['future', 'hacer', 'short'], ['conditional', 'salir', 'dr'], ['future', 'ser', 'regular'],
+    ['perfect', 'hacer', 'irregular'], ['perfect', 'escribir', 'irregular'], ['perfect', 'leer', 'accent'], ['pluperfect', 'tener', 'regular'],
+    ['subjunctive', 'ser', 'irregular'], ['subjunctive', 'tener', 'yo'], ['subjunctive', 'conocer', 'yo'], ['subjunctive', 'pensar', 'e→ie'],
+    ['subjunctive', 'buscar', 'spelling'], ['subjunctive', 'enviar', 'accent'], ['subjunctive', 'hablar', 'regular'],
+  ];
+  for (const [id, inf, kind] of cases) assert.ok(kinds(inf, id).includes(kind), `${id} ${inf}: ${kinds(inf, id)}`);
+  assert.ok(!kinds('tener', 'subjunctive').includes('e→ie'), 'tenga keeps the yo stem');
+  assert.ok(kinds('lavarse', 'preterite').includes('reflexive'));
+});

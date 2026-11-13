@@ -7,7 +7,7 @@
   const BOOKS = ['all', 'D1', 'D2', 'D3'];
 
   function defaults() {
-    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', tenses: null, book: 'all', off: [], mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } };
+    return { items: {}, settings: { chips: [], vosotros: true, tense: 'present', tenses: null, book: 'all', offBy: {}, mode: 'conjugar', ex: {}, reading: '', scores: {}, strictAccents: false, lesson: 'D3.2', upto: 'D3.2', focus: '' } };
   }
 
   const LESSON = /^D[123]\.\d+$/;
@@ -38,7 +38,14 @@
       // The ticked tenses of the drill; null until the student first picks (then the old single tense counts).
       if (Array.isArray(s.tenses)) out.settings.tenses = s.tenses.filter((c) => typeof c === 'string');
       if (BOOKS.includes(s.book)) out.settings.book = s.book;
-      if (Array.isArray(s.off)) out.settings.off = s.off.filter((c) => typeof c === 'string');
+      // Unticked verb types per tense ({ preterite: ['strong'] }); every type starts ticked. Before each tense had
+      // its own menu, off held the present's.
+      if (s.offBy && typeof s.offBy === 'object' && !Array.isArray(s.offBy)) {
+        for (const [id, list] of Object.entries(s.offBy)) {
+          if (Array.isArray(list)) out.settings.offBy[id] = list.filter((c) => typeof c === 'string');
+        }
+      }
+      if (Array.isArray(s.off) && !out.settings.offBy.present) out.settings.offBy.present = s.off.filter((c) => typeof c === 'string');
       if (typeof s.mode === 'string' && s.mode) out.settings.mode = s.mode;
       if (typeof s.reading === 'string') out.settings.reading = s.reading;
       // Last score per reading: { entradas: { r: 5, t: 7 } }.

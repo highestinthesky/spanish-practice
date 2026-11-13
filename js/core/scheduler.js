@@ -19,6 +19,10 @@
 
   // Book ('D1', 'D2', 'D3'; anything else means all) AND any of the chips (none means all) AND none of the
   // unticked types in off: a verb with any unticked type is left out (acostarse is o→ue and reflexive).
+  // Chips and off name the tense's own verb types.
+  // A verb's types in this tense: tense.kinds() worked out when the verb was added, else its tags.
+  const kindsOf = (verb, tense) => (verb.kinds && verb.kinds[tense.id]) || verb.tags;
+
   function buildPool({ verbs, tense, chips, vosotros, book, off }) {
     const wanted = chips && chips.length ? new Set(chips) : null;
     const inBook = /^D\d$/.test(book) ? book : null;
@@ -27,8 +31,9 @@
     for (const verb of verbs) {
       if (!verb.forms[tense.id]) continue;
       if (inBook && !verb.tags.includes(inBook)) continue;
-      if (unticked && verb.tags.some((t) => unticked.has(t))) continue;
-      if (wanted && !verb.tags.some((t) => wanted.has(t))) continue;
+      const kinds = kindsOf(verb, tense);
+      if (unticked && kinds.some((t) => unticked.has(t))) continue;
+      if (wanted && !kinds.some((t) => wanted.has(t))) continue;
       const tricky = !verb.tricky || verb.tricky[tense.id] !== false;
       for (let person = 0; person < tense.persons.length; person += 1) {
         if (!vosotros && person === tense.vosotrosIndex) continue;
@@ -104,5 +109,5 @@
     return candidates[candidates.length - 1];
   }
 
-  D.scheduler = { WEIGHTS, UNSEEN, PLAIN, REST_MS, RECENT_VERBS, COOLDOWN_MS, itemKey, buildPool, weightOf, restingVerbs, pick };
+  D.scheduler = { WEIGHTS, UNSEEN, PLAIN, REST_MS, RECENT_VERBS, COOLDOWN_MS, itemKey, kindsOf, buildPool, weightOf, restingVerbs, pick };
 })(typeof window !== 'undefined' ? window : globalThis);

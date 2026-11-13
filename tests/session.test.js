@@ -40,10 +40,10 @@ test('toggleType unticks and reticks a type and persists in the store', () => {
   const { session, store } = setup();
   assert.equal(session.typeOn('o→ue'), true);
   session.toggleType('o→ue');
-  assert.deepEqual(store.state().settings.off, ['o→ue']);
+  assert.deepEqual(store.state().settings.offBy.present, ['o→ue']);
   assert.equal(session.typeOn('o→ue'), false);
   session.toggleType('o→ue');
-  assert.deepEqual(store.state().settings.off, []);
+  assert.deepEqual(store.state().settings.offBy.present, []);
 });
 
 test('next() returns null when every verb is unticked, never a verb the menu excludes', () => {
@@ -284,7 +284,7 @@ test('saved D1/D2 chips from the old rail move into the book setting', () => {
   const { session } = bookSetup({ chips: ['D2', 'e→ie'] });
   assert.equal(session.settings().book, 'D2');
   assert.deepEqual(session.settings().chips, []);
-  assert.ok(!session.settings().off.includes('e→ie') && session.settings().off.includes('o→ue'));
+  assert.ok(!session.settings().offBy.present.includes('e→ie') && session.settings().offBy.present.includes('o→ue'));
   const both = bookSetup({ chips: ['D1', 'D2'] }).session;
   assert.equal(both.settings().book, 'all');
   assert.deepEqual(both.settings().chips, []);
@@ -305,7 +305,7 @@ function typesSetup(saved) {
 test('unticking reflexivo removes every reflexive verb, including stem-changing ones', () => {
   const { session } = typesSetup();
   session.toggleType('reflexive');
-  assert.deepEqual(session.settings().off, ['reflexive']);
+  assert.deepEqual(session.settings().offBy.present, ['reflexive']);
   for (let i = 0; i < 400; i += 1) {
     const p = session.next();
     assert.ok(!p.verb.reflexive, `${p.verb.inf} came up with reflexivo unticked`);
@@ -329,20 +329,20 @@ test('ticking types back in brings their verbs back; all types ticked means ever
   assert.ok(session.poolSize() < all);
   session.toggleType('reflexive');
   assert.equal(session.poolSize(), all);
-  assert.deepEqual(session.settings().off, []);
+  assert.deepEqual(session.settings().offBy.present, []);
 });
 
 test('setAllTypes(false) empties the pool and next() returns null instead of ignoring the menu', () => {
   const { session } = typesSetup();
   session.setAllTypes(false);
-  assert.deepEqual([...session.settings().off].sort(), [...D.TYPE_TAGS].sort());
+  assert.deepEqual([...session.settings().offBy.present].sort(), [...D.TYPE_TAGS].sort());
   assert.equal(session.poolSize(), 0);
   assert.equal(session.next(), null);
   session.toggleType('regular');
   assert.ok(session.poolSize() > 0);
   for (let i = 0; i < 50; i += 1) assert.deepEqual(session.next().verb.tags.filter((t) => D.TYPE_TAGS.includes(t)), ['regular']);
   session.setAllTypes(true);
-  assert.deepEqual(session.settings().off, []);
+  assert.deepEqual(session.settings().offBy.present, []);
 });
 
 test('a type and a book that share no verbs give an empty pool, not a silent fallback', () => {
@@ -357,7 +357,7 @@ test('a type and a book that share no verbs give an empty pool, not a silent fal
 
 test('chips saved by the old include-list menu become the matching unticked types', () => {
   const { session } = typesSetup({ chips: ['e→ie', 'o→ue', 'regular'] });
-  assert.deepEqual([...session.settings().off].sort(), D.TYPE_TAGS.filter((t) => !['e→ie', 'o→ue', 'regular'].includes(t)).sort());
+  assert.deepEqual([...session.settings().offBy.present].sort(), D.TYPE_TAGS.filter((t) => !['e→ie', 'o→ue', 'regular'].includes(t)).sort());
   assert.deepEqual(session.settings().chips, []);
 });
 
@@ -377,4 +377,48 @@ test('streak counts consecutive right answers, best keeps the high mark, count t
   assert.equal(session.streak(), 1);
   assert.equal(session.best(), 2);
   assert.equal(session.count(), 4);
+});
+
+/* Each tense has its own type menu. */
+
+function realSetup(saved) {
+  const raw = saved ? JSON.stringify({ settings: saved }) : null;
+  const store = D.createStore(() => ({ getItem: () => raw, setItem() {}, removeItem() {} }));
+  let t = 0;
+  return D.createSession({ verbs: D.verbs, tenses: D.tenses, store, rng: mulberry32(5), now: () => (t += 1000) });
+}
+
+test('unticking a pretérito type leaves the present menu alone', () => {
+  const session = realSetup({ tenses: ['present', 'preterite'] });
+  const present = session.tenseCount('present');
+  session.toggleType('strong', 'preterite');
+  assert.equal(session.typeOn('strong', 'preterite'), false);
+  assert.deepEqual(session.settings().offBy, { preterite: ['strong'] });
+  assert.equal(session.tenseCount('present'), present);
+  for (let i = 0; i < 300; i += 1) {
+    const p = session.next();
+    if (p.tenseId === 'preterite') assert.ok(!p.verb.kinds.preterite.includes('strong'), `${p.verb.inf} came up with raíz fuerte unticked`);
+    session.answer(p, p.expected);
+  }
+});
+
+test('a tense drills only the verbs of its ticked types; todos ticks them all back', () => {
+  const session = realSetup({ tenses: ['future'] });
+  session.setAllTypes(false, 'future');
+  assert.equal(session.poolSize(), 0);
+  assert.equal(session.allTypesOn('future'), false);
+  session.toggleType('dr', 'future');
+  // reflexivo is still unticked, so mantenerse stays out: a verb with any unticked type is left out.
+  assert.equal(session.poolSize(), D.verbs.filter((v) => v.kinds.future.join() === 'dr').length);
+  assert.ok(session.poolSize() < session.countFor('dr', 'future'));
+  for (let i = 0; i < 40; i += 1) assert.ok(session.next().verb.kinds.future.includes('dr'));
+  session.setAllTypes(true, 'future');
+  assert.equal(session.poolSize(), session.typeTotal('future'));
+});
+
+test('type counts are per tense: a verb strong in the pretérito is regular in the present', () => {
+  const session = realSetup();
+  assert.equal(session.countFor('strong', 'preterite'), D.verbs.filter((v) => v.kinds.preterite.includes('strong')).length);
+  assert.equal(session.countFor('strong', 'present'), 0);
+  assert.equal(session.typesOf('preterite').length > 0, true);
 });

@@ -59,7 +59,9 @@ test('every menu is in the page markup: tabs, tense, book and type boxes, lesson
   const D = load();
   for (const m of D.MODES) assert.match(html, new RegExp(`<button class="mode" id="tab-${m.id}"[^>]*role="tab"`));
   for (const t of D.tenses.all()) assert.ok(html.includes(`type="checkbox" name="tense" value="${t.id}"`), t.id);
-  for (const tag of D.TYPE_TAGS) assert.ok(html.includes(`name="type" value="${tag}"`), tag);
+  for (const t of D.tenses.all()) {
+    for (const g of t.types) for (const i of g.items) assert.ok(html.includes(`name="type" value="${i.id}" data-tense="${t.id}"`), `${t.id} ${i.id}`);
+  }
   for (const id of ['lesson', 'upto', 'focus']) assert.match(html, new RegExp(`<select class="pick-select" id="${id}">`));
   for (const l of D.lessons.list()) {
     assert.ok(html.includes(`<option value="${l.id}">`), l.id);
@@ -76,7 +78,10 @@ test('the settings rail uses real form controls: a labelled drawer button, field
   assert.match(html, /id="menu"[^>]*aria-label="ajustes"[^>]*aria-controls="side"[^>]*aria-expanded="false"/);
   assert.match(html, /<fieldset class="group" id="tenses">/);
   assert.match(html, /<fieldset class="group" id="book">/);
-  assert.match(html, /<fieldset class="group group-grow" id="types">/);
+  assert.match(html, /<div class="tense-types" id="types">/);
+  // One type menu per tense; only the present's shows before the app runs.
+  assert.match(html, /<fieldset class="group" data-tense="present">/);
+  assert.match(html, /<fieldset class="group" data-tense="preterite" hidden>/);
   assert.match(html, /<input[^>]*id="vos"[^>]*type="checkbox"[^>]*role="switch"/);
 });
 

@@ -27,11 +27,16 @@
         const books = chips.filter((c) => /^D\d$/.test(c));
         const types = chips.filter((c) => !books.includes(c));
         if (books.length === 1) store.setSetting('book', books[0]);
-        if (types.length) store.setSetting('off', (D.TYPE_TAGS || []).filter((t) => !types.includes(t)));
+        if (types.length) store.setSetting('offBy', { ...settings().offBy, present: (D.TYPE_TAGS || []).filter((t) => !types.includes(t)) });
         store.setSetting('chips', []);
       }
     }
-    const off = () => settings().off || [];
+    // Each tense has its own verb types (tense.types) and its own unticked list.
+    const offFor = (id) => (settings().offBy || {})[id] || [];
+    // A tense without its own types filters on the verb tags, like the present.
+    const typeIds = (t) => (t.types ? t.types.flatMap((g) => g.items.map((i) => i.id)) : (D.TYPE_TAGS || []).slice());
+    const setOff = (id, list) => store.setSetting('offBy', { ...settings().offBy, [id]: list });
+    const tenseOf = (id) => tenses.get(id) || tenses.all()[0];
 
     // The ticked tenses. Before the tense menu there was one tense, or 'mix' for all of them.
     const chosen = () => {
@@ -45,20 +50,22 @@
     // Menu counts look past the tense choice when nothing is ticked, so the other options never read 0.
     const counted = () => (inPlay().length ? inPlay() : tenses.all());
 
-    function poolFor({ book = settings().book, unticked = off(), chips = [], over = inPlay() } = {}) {
+    // unticked: null for each tense's own list, or one list for every tense in over.
+    function poolFor({ book = settings().book, unticked = null, chips = [], over = inPlay() } = {}) {
       const pool = [];
       for (const t of over) {
-        pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, off: unticked, vosotros: settings().vosotros }));
+        const off = unticked || offFor(t.id);
+        pool.push(...D.scheduler.buildPool({ verbs, tense: t, chips, book, off, vosotros: settings().vosotros }));
       }
       return pool;
     }
 
     // Exactly what the menu says: no fallback. An empty selection gives an empty pool.
     const activePool = () => poolFor();
-    const allowed = (verb) => {
+    const allowed = (verb, tense) => {
       const book = settings().book;
       if (/^D\d$/.test(book) && !verb.tags.includes(book)) return false;
-      return !verb.tags.some((t) => off().includes(t));
+      return !D.scheduler.kindsOf(verb, tense).some((t) => offFor(tense.id).includes(t));
     };
 
     const distinctVerbs = (pool) => new Set(pool.map((p) => p.verb.inf)).size;
@@ -66,7 +73,7 @@
     function dueRetry() {
       const ids = new Set(inPlay().map((t) => t.id));
       retries = retries.filter(
-        (r) => ids.has(r.tense.id) && allowed(r.verb) && (settings().vosotros || r.person !== r.tense.vosotrosIndex)
+        (r) => ids.has(r.tense.id) && allowed(r.verb, r.tense) && (settings().vosotros || r.person !== r.tense.vosotrosIndex)
       );
       const i = retries.findIndex((r) => r.due <= served && (!last || r.key !== last.key));
       return i < 0 ? null : retries.splice(i, 1)[0];
@@ -88,24 +95,30 @@
         const t = tenses.get(id);
         return t ? distinctVerbs(poolFor({ over: [t] })) : 0;
       },
-      // Every type starts ticked; off lists the unticked ones.
-      typeOn: (tag) => !off().includes(tag),
-      toggleType(tag) {
-        const set = new Set(off());
-        if (set.has(tag)) set.delete(tag);
-        else set.add(tag);
-        store.setSetting('off', Array.from(set));
+      // A tense's verb types, grouped for its menu.
+      typesOf: (id) => (tenses.get(id) || {}).types || [],
+      // Every type starts ticked; offBy[tense] lists the unticked ones. The tense defaults to the present.
+      typeOn: (kind, id = 'present') => !offFor(id).includes(kind),
+      toggleType(kind, id = 'present') {
+        const set = new Set(offFor(id));
+        if (set.has(kind)) set.delete(kind);
+        else set.add(kind);
+        setOff(id, Array.from(set));
       },
-      setAllTypes(on) {
-        store.setSetting('off', on ? [] : (D.TYPE_TAGS || []).slice());
+      setAllTypes(on, id = 'present') {
+        const t = tenses.get(id);
+        if (t) setOff(id, on ? [] : typeIds(t));
       },
+      allTypesOn: (id = 'present') => offFor(id).length === 0,
       setBook(book) {
         if ((D.BOOKS || ['all']).includes(book)) store.setSetting('book', book);
       },
       // Distinct verbs in the pool being drilled, and per-option counts for the menu.
       poolSize: () => distinctVerbs(activePool()),
-      // How many verbs of the chosen book have this type, whatever else is ticked.
-      countFor: (tag) => distinctVerbs(poolFor({ chips: [tag], unticked: [], over: counted() })),
+      // How many verbs of the chosen book have this type in this tense, whatever else is ticked.
+      countFor: (kind, id = 'present') => distinctVerbs(poolFor({ chips: [kind], unticked: [], over: [tenseOf(id)] })),
+      // Every verb of the chosen book in this tense: the count on its "todos".
+      typeTotal: (id = 'present') => distinctVerbs(poolFor({ unticked: [], over: [tenseOf(id)] })),
       bookCount: (book) => distinctVerbs(poolFor({ book, unticked: [], over: counted() })),
       setVosotros(on) {
         store.setSetting('vosotros', Boolean(on));
